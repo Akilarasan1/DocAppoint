@@ -10,6 +10,7 @@ class AppointmentForm(forms.ModelForm):
         fields = ['patient', 'doctor', 'appointment_date', 'appointment_time', 'description']
 
 
+
 class PatientSignUpForm(UserCreationForm):
     email = forms.EmailField()
 

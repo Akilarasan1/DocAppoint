@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Doctor Dashboard</title>
+</head>
+<body>
+    <h2>Welcome Dr. {{ doctor.name }}</h2>
+
+    <p><a href="{% url 'logout' %}">Logout</a></p>
+
+    <h3>Your Appointments</h3>
+    {% if appointments %}
+        <table border="1">
+            <tr>
+                <th>Patient</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Description</th>
+            </tr>
+            {% for appt in appointments %}
+            <tr>
+                <td>{{ appt.patient.name }}</td>
+                <td>{{ appt.appointment_date }}</td>
+                <td>{{ appt.appointment_time }}</td>
+                <td>{{ appt.status }}</td>
+                <td>{{ appt.description }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No appointments assigned.</p>
+    {% endif %}
+</body>
+</html>

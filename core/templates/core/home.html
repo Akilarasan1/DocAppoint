@@ -1,12 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hospital Home</title>
 </head>
 <body>
-    <h1> welcome to the Hospital website</h1>
-    <p> <a href=" {% url 'book_appointment' %}"></a></p>
+    <h1>Welcome to the Hospital Website</h1>
+
+    {% if user.is_authenticated %}
+        <p>Hello, {{ user.username }}! <a href="{% url 'patient_dashboard' %}">Go to Dashboard</a> | <a href="{% url 'logout' %}">Logout</a></p>
+    {% else %}
+        <p><a href="{% url 'register' %}">Register</a> | <a href="{% url 'login' %}">Login</a></p>
+    {% endif %}
+
+    <p><a href="{% url 'book_appointment' %}">Book an Appointment</a></p>
 </body>
 </html>
