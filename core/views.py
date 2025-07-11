@@ -5,11 +5,12 @@ from django.urls import reverse
 from .forms import AppointmentForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
-from django.shortcuts import redirect,get_object_or_404
 from .forms import PatientSignUpForm
 from .models import Patient
 from django.contrib.auth.decorators import login_required
-
+from django.shortcuts import get_object_or_404, redirect
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import send_mail
 
 
 def home(request):
@@ -21,12 +22,22 @@ def home(request):
 @login_required
 def book_appointment(request):
     patient = Patient.objects.get(user=request.user)
+
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
         if form.is_valid():
             appointment = form.save(commit=False)
-            appointment.patient = patient  # set logged-in patient automatically
+            appointment.patient = patient
             appointment.save()
+
+            send_mail(
+                'Appointment Request Received',
+                f'Dear {patient.name},\n\nYour appointment request with Dr. {appointment.doctor.name} on {appointment.appointment_date} at {appointment.appointment_time} has been received and is pending approval.\n\nThank you!',
+                'akshospital@gmail.com',
+                [patient.email],
+                fail_silently=False,
+            )
+
             return redirect('patient_dashboard')
     else:
         form = AppointmentForm()
@@ -56,16 +67,26 @@ def register(request):
         form = PatientSignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
+            age = form.cleaned_data.get('age')
+            gender = form.cleaned_data.get('gender')
+            phone = form.cleaned_data.get('phone')
+            address = form.cleaned_data.get('address')
+
             Patient.objects.create(
                 user=user,
                 name=user.username,
-                email=user.email
+                email=user.email,
+                age=age,
+                gender=gender,
+                phone=phone,
+                address=address
             )
             login(request, user)
             return redirect('home')
     else:
         form = PatientSignUpForm()
     return render(request, 'core/register.html', {'form': form})
+
 
 
 def user_login(request):
@@ -112,3 +133,39 @@ def doctor_dashboard(request):
         'doctor': doctor,
         'appointments': appointments
     })
+
+
+
+@login_required
+def approve_appointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    appointment.status = 'Approved'
+    appointment.save()
+
+    send_mail(
+        'Appointment Approved',
+        f'Dear {appointment.patient.name},\n\nYour appointment with Dr. {appointment.doctor.name} on {appointment.appointment_date} at {appointment.appointment_time} has been APPROVED.\n\nThank you!',
+        'hospital@example.com',
+        [appointment.patient.email],
+        fail_silently=False,
+    )
+
+    return redirect('doctor_dashboard')
+
+@login_required
+def reject_appointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    appointment.status = 'Rejected'
+    appointment.save()
+
+    send_mail(
+        'Appointment Rejected',
+        f'Dear {appointment.patient.name},\n\nWe regret to inform you that your appointment with Dr. {appointment.doctor.name} on {appointment.appointment_date} at {appointment.appointment_time} has been REJECTED.\n\nPlease try booking another slot.\n\nThank you!',
+        'hospital@example.com',
+        [appointment.patient.email],
+        fail_silently=False,
+    )
+
+    return redirect('doctor_dashboard')
+
+

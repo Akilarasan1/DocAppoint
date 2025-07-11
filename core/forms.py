@@ -12,8 +12,11 @@ class AppointmentForm(forms.ModelForm):
 
 
 class PatientSignUpForm(UserCreationForm):
-    email = forms.EmailField()
+    age = forms.IntegerField()
+    gender = forms.ChoiceField(choices=[('Male', 'Male'), ('Female', 'Female')])
+    phone = forms.CharField(max_length=15)
+    address = forms.CharField(widget=forms.Textarea)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2']
+        fields = ['username', 'password1', 'password2', 'email', 'age', 'gender', 'phone', 'address']

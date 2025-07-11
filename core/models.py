@@ -34,20 +34,22 @@ class Patient(models.Model):
 
     def __str__(self):
         return self.name
+        
     
 class Appointment(models.Model):
-    patient = models.ForeignKey(Patient, on_delete = models.CASCADE)
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    ]
+
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     appointment_date = models.DateField()
     appointment_time = models.TimeField()
-    description = models.TextField(blank = True)
-    status = models.CharField(max_length = 20, choices = [
-        ('Pending', 'Pending'),
-        ('Approved', 'Approved'),
-        ('Cancelled', 'Cancelled'),
-    ], default = 'Pending')
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
 
     def __str__(self):
-        return f"{self.patient.name} with Dr. {self.doctor.name } on \
-            {self.appointment_date}"
-    
+        return f"{self.patient.name} with Dr. {self.doctor.name} on {self.appointment_date}"
+
