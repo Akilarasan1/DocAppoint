@@ -1,35 +1,35 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Patient Dashboard</title>
-</head>
-<body>
-    <h2>Welcome, {{ patient.name }}</h2>
+{% extends 'core/base.html' %}
 
-    <p><a href="{% url 'book_appointment' %}">Book New Appointment</a> | <a href="{% url 'logout' %}">Logout</a></p>
+{% block content %}
+  <h2>Welcome, {{ patient.name }}</h2>
 
-    <h3>Your Appointments</h3>
-    {% if appointments %}
-        <table border="1">
-            <tr>
-                <th>Doctor</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Status</th>
-                <th>Description</th>
-            </tr>
-            {% for appt in appointments %}
-            <tr>
-                <td>{{ appt.doctor.name }}</td>
-                <td>{{ appt.appointment_date }}</td>
-                <td>{{ appt.appointment_time }}</td>
-                <td>{{ appt.status }}</td>
-                <td>{{ appt.description }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>You have no appointments yet.</p>
-    {% endif %}
-</body>
-</html>
+  <h3>Your Appointments</h3>
+  {% if appointments %}
+    <table class="table table-bordered table-striped">
+      <thead class="table-primary">
+        <tr>
+          <th>Doctor</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Status</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appt in appointments %}
+        <tr>
+          <td>{{ appt.doctor.name }}</td>
+          <td>{{ appt.appointment_date }}</td>
+          <td>{{ appt.appointment_time }}</td>
+          <td>{{ appt.status }}</td>
+          <td>{{ appt.description }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No appointments found.</p>
+  {% endif %}
+
+  <a href="{% url 'book_appointment' %}" class="btn btn-primary">Book New Appointment</a>
+{% endblock %}

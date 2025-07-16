@@ -1,0 +1,32 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+  <h2>Admin Dashboard</h2>
+
+  <ul class="list-group">
+    <li class="list-group-item d-flex justify-content-between">
+      <span>Total Patients</span>
+      <span class="badge bg-primary">{{ total_patients }}</span>
+    </li>
+    <li class="list-group-item d-flex justify-content-between">
+      <span>Total Doctors</span>
+      <span class="badge bg-primary">{{ total_doctors }}</span>
+    </li>
+    <li class="list-group-item d-flex justify-content-between">
+      <span>Total Appointments</span>
+      <span class="badge bg-primary">{{ total_appointments }}</span>
+    </li>
+    <li class="list-group-item d-flex justify-content-between">
+      <span>Approved</span>
+      <span class="badge bg-success">{{ approved }}</span>
+    </li>
+    <li class="list-group-item d-flex justify-content-between">
+      <span>Rejected</span>
+      <span class="badge bg-danger">{{ rejected }}</span>
+    </li>
+    <li class="list-group-item d-flex justify-content-between">
+      <span>Pending</span>
+      <span class="badge bg-warning text-dark">{{ pending }}</span>
+    </li>
+  </ul>
+{% endblock %}

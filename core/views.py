@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
-
+from django.contrib.admin.views.decorators import staff_member_required
 
 def home(request):
     return render(request, 'core/home.html')
@@ -168,4 +168,22 @@ def reject_appointment(request, appointment_id):
 
     return redirect('doctor_dashboard')
 
+@staff_member_required
+def admin_dashboard(request):
+    total_patients = Patient.objects.count()
+    total_doctors = Patient.objects.count()
+    total_appointment = Appointment.objects.count()
+    approved = Appointment.objects.filter(status = "Approved").count()
+    rejected = Appointment.objects.filter(status = "Rejected").count()
+    pending = Appointment.objects.filter(status = "Pending").count()
 
+    context = {
+        "total_patients": total_patients,
+        "total_doctors": total_doctors,
+        "total_appointments": total_appointment,
+        "approved": approved,
+        "rejected": rejected,
+        "pending":pending,
+    }
+
+    return render(request, "core/admin_dashboard.html", context)

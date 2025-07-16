@@ -1,44 +1,42 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Doctor Dashboard</title>
-</head>
-<body>
-    <h2>Welcome Dr. {{ doctor.name }}</h2>
+{% extends 'core/base.html' %}
 
-    <p><a href="{% url 'logout' %}">Logout</a></p>
+{% block content %}
+  <h2>Welcome Dr. {{ doctor.name }}</h2>
 
-    <h3>Your Appointments</h3>
-    {% if appointments %}
-        <table border="1">
-            <tr>
-                <th>Patient</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Status</th>
-                <th>Description</th>
-                <th>Actions</th>
-            </tr>
-            {% for appt in appointments %}
-            <tr>
-                <td>{{ appt.patient.name }}</td>
-                <td>{{ appt.appointment_date }}</td>
-                <td>{{ appt.appointment_time }}</td>
-                <td>{{ appt.status }}</td>
-                <td>{{ appt.description }}</td>
-                <td>
-                    {% if appt.status == "Pending" %}
-                        <a href="{% url 'approve_appointment' appt.id %}">Approve</a> |
-                        <a href="{% url 'reject_appointment' appt.id %}">Reject</a>
-                    {% else %}
-                        No actions
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>No appointments assigned.</p>
-    {% endif %}
-</body>
-</html>
+  <h3>Your Appointments</h3>
+  {% if appointments %}
+    <table class="table table-bordered table-striped">
+      <thead class="table-primary">
+        <tr>
+          <th>Patient</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Status</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appt in appointments %}
+        <tr>
+          <td>{{ appt.patient.name }}</td>
+          <td>{{ appt.appointment_date }}</td>
+          <td>{{ appt.appointment_time }}</td>
+          <td>{{ appt.status }}</td>
+          <td>{{ appt.description }}</td>
+          <td>
+            {% if appt.status == "Pending" %}
+              <a href="{% url 'approve_appointment' appt.id %}" class="btn btn-success btn-sm">Approve</a>
+              <a href="{% url 'reject_appointment' appt.id %}" class="btn btn-danger btn-sm">Reject</a>
+            {% else %}
+              <span class="text-muted">No actions</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No appointments assigned.</p>
+  {% endif %}
+{% endblock %}
