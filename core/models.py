@@ -19,6 +19,7 @@ class Doctor(models.Model):
     phone = models.CharField(max_length=15)
     available_days = models.CharField(max_length=100)
     available_time = models.CharField(max_length=50)
+    specialization = models.CharField(max_length=100)
 
     def __str__(self):
         return f"Dr. {self.name} ({self.department.name})"
@@ -52,4 +53,5 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"{self.patient.name} with Dr. {self.doctor.name} on {self.appointment_date}"
+
 

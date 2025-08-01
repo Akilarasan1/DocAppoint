@@ -6,18 +6,19 @@ from .forms import AppointmentForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from .forms import PatientSignUpForm
-from .models import Patient
+# from .models import Patient
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.contrib.admin.views.decorators import staff_member_required
 
+from .forms import DoctorProfileForm
+
 def home(request):
     return render(request, 'core/home.html')
 
     # core/templates/core/home.html
-
 
 @login_required
 def book_appointment(request):
@@ -59,7 +60,6 @@ def book_appointment(request):
 #         form = AppointmentForm()
 
 #     return render(request, 'core/book_appointment.html', {'form': form})
-
 
 
 def register(request):
@@ -187,3 +187,22 @@ def admin_dashboard(request):
     }
 
     return render(request, "core/admin_dashboard.html", context)
+
+
+@login_required
+def doctor_profile(request):
+    if not hasattr(request.user, 'doctor'):
+        return redirect('login')  # Just in case
+
+    doctor = request.user.doctor
+
+    if request.method == 'POST':
+        form = DoctorProfileForm(request.POST, instance=doctor)
+        if form.is_valid():
+            form.save()
+            return redirect('doctor_profile')
+    else:
+        form = DoctorProfileForm(instance=doctor)
+
+    return render(request, 'core/doctor_profile.html', {'form': form})
+

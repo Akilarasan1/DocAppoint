@@ -10,6 +10,13 @@
         {{ form.as_p }}
         <button type="submit">Login</button>
     </form>
+
+    {% if request.GET.next %}
+  <div class="alert alert-warning">
+    Please log in to continue.
+  </div>
+    {% endif %}
+
     <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
 </body>
 </html>

@@ -28,6 +28,8 @@
             {% if appt.status == "Pending" %}
               <a href="{% url 'approve_appointment' appt.id %}" class="btn btn-success btn-sm">Approve</a>
               <a href="{% url 'reject_appointment' appt.id %}" class="btn btn-danger btn-sm">Reject</a>
+              <a href="{% url 'doctor_profile' %}" class="btn btn-outline-info">Edit Profile</a>
+
             {% else %}
               <span class="text-muted">No actions</span>
             {% endif %}
