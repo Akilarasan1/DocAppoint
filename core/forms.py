@@ -10,7 +10,6 @@ class AppointmentForm(forms.ModelForm):
         fields = ['patient', 'doctor', 'appointment_date', 'appointment_time', 'description']
 
 
-
 class PatientSignUpForm(UserCreationForm):
     age = forms.IntegerField()
     gender = forms.ChoiceField(choices=[('Male', 'Male'), ('Female', 'Female')])

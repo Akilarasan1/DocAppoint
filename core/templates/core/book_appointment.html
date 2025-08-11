@@ -9,8 +9,8 @@
   <h2>Book an Appointment</h2>
 
     <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
+      {% csrf_token %}
+      {{ form.as_p }}
     <button type="submit">Submit</button>
   </form>
 

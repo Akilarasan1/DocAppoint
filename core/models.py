@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-
-
 class Department(models.Model):
     name = models.CharField(max_length = 100)
     description = models.TextField(blank = True)
@@ -17,6 +15,8 @@ class Doctor(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     email = models.EmailField()
     phone = models.CharField(max_length=15)
+    is_featured = models.BooleanField(default=False)
+
     available_days = models.CharField(max_length=100)
     available_time = models.CharField(max_length=50)
     specialization = models.CharField(max_length=100)

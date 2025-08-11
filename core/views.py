@@ -12,8 +12,61 @@ from django.shortcuts import get_object_or_404, redirect
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
+from django.http import HttpResponseForbidden
 
 from .forms import DoctorProfileForm
+
+from .models import Department, Doctor
+
+def homepage(request):
+    departments = Department.objects.all()[:6]  # Limit to 6 for neatness
+    doctors = Doctor.objects.filter(is_featured=True)[:4]  # You can add a boolean field for featured doctors
+    return render(request, 'core/home.html', {
+        'departments': departments,
+        'doctors': doctors
+    })
+def patient_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            if hasattr(user, 'patient'):
+                login(request, user)
+                return redirect('patient_dashboard')
+            else:
+                messages.error(request, "This login is for patients only.")
+                return redirect('patient_login')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'core/patient_login.html', {'form': form})
+
+
+def departments(request):
+    return render(request, 'core/departments.html')
+
+def doctors(request):
+    return render(request, 'core/doctors.html')
+def departments_detail(request, department_id):
+    department = get_object_or_404(Department, pk=department_id)
+    return render(request, "core/departments_detail.html", {'department': department})
+
+def doctor_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            if hasattr(user, 'doctor'):
+                login(request, user)
+                return redirect('doctor_dashboard')
+            else:
+                messages.error(request, "This login is for doctors only.")
+                return redirect('doctor_login')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'core/doctor_login.html', {'form': form})
+
+
 
 def home(request):
     return render(request, 'core/home.html')
@@ -22,11 +75,26 @@ def home(request):
 
 @login_required
 def book_appointment(request):
-    patient = Patient.objects.get(user=request.user)
+    # 1️⃣ Decide which patient to use
+    if hasattr(request.user, 'patient'):
+        # Logged-in user is a patient
+        patient = request.user.patient
+    else:
+        # Logged-in user is NOT a patient — must select a patient in form
+        if request.method == 'POST':
+            patient_id = request.POST.get('patient_id')
+            try:
+                patient = Patient.objects.get(id=patient_id)
+            except Patient.DoesNotExist:
+                messages.error(request, "Invalid patient selected.")
+                return redirect('home')
+        else:
+            patient = None  # No patient yet for GET requests
 
+    # 2️⃣ Process form
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
-        if form.is_valid():
+        if form.is_valid() and patient:
             appointment = form.save(commit=False)
             appointment.patient = patient
             appointment.save()
@@ -38,28 +106,15 @@ def book_appointment(request):
                 [patient.email],
                 fail_silently=False,
             )
-
-            return redirect('patient_dashboard')
+            return redirect('patient_dashboard' if hasattr(request.user, 'patient') else 'home')
     else:
         form = AppointmentForm()
 
-    return render(request, 'core/book_appointment.html', {'form': form})
-
-# @login_required
-# def book_appointment(request):
-#     patient = get_object_or_404(Patient, user=request.user)
-
-#     if request.method == 'POST':
-#         form = AppointmentForm(request.POST)
-#         if form.is_valid():
-#             appointment = form.save(commit=False)
-#             appointment.patient = patient
-#             appointment.save()
-#             return redirect('patient_dashboard')
-#     else:
-#         form = AppointmentForm()
-
-#     return render(request, 'core/book_appointment.html', {'form': form})
+    # 3️⃣ Pass patient info for template rendering
+    return render(request, 'core/book_appointment.html', {
+        'form': form,
+        'is_patient': hasattr(request.user, 'patient')
+    })
 
 
 def register(request):
@@ -118,12 +173,18 @@ def user_logout(request):
 
 @login_required
 def patient_dashboard(request):
+    
+    if not hasattr(request.user, 'patient'):
+        return HttpResponseForbidden("Access denied. You are not a patient.")
     patient = Patient.objects.get(user=request.user)
     appointments = Appointment.objects.filter(patient=patient)
     return render(request, 'core/patient_dashboard.html', {
         'patient': patient,
         'appointments': appointments
     })
+     
+
+
 
 @login_required
 def doctor_dashboard(request):
@@ -205,4 +266,3 @@ def doctor_profile(request):
         form = DoctorProfileForm(instance=doctor)
 
     return render(request, 'core/doctor_profile.html', {'form': form})
-

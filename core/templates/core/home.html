@@ -1,21 +1,51 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Hospital Home</title>
-</head>
-<body>
-    <h1>Welcome to the Hospital Website</h1>
+{% extends 'base.html' %}
+{% load static %}
 
-    {% if user.is_authenticated %}
+{% block content %}
+<div class="container mt-4">
+    <!-- Hero Section -->
+    <div class="row align-items-center mb-5">
+        <div class="col-md-6">
+            <h1 class="display-4 fw-bold">Your Health, Our Priority</h1>
+            <p class="lead">Expert care, compassionate staff, and world-class facilities at your service.</p>
+            <a href="{% url 'book_appointment' %}" class="btn btn-primary btn-lg">Book an Appointment</a>
+        </div>
+        <div class="col-md-6">
+            <img src="{% static 'images/hospital_banner.jpg' %}" class="img-fluid rounded shadow" alt="Hospital">
+        </div>
+    </div>
 
-        <p>Hello, {{ user.username }}! <a href="{% url 'patient_dashboard' %}">Go to Dashboard</a> | <a href="{% url 'logout' %}">Logout</a></p>
-    
-        {% else %}
-        
-        <p><a href="{% url 'register' %}">Register</a> | <a href="{% url 'login' %}">Login</a></p>
-    
-        {% endif %}
+    <!-- Departments Section -->
+    <h2 class="mb-4">Our Departments</h2>
+    <div class="row">
+        {% for dept in departments %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ dept.name }}</h5>
+                    <p class="card-text">{{ dept.description|truncatechars:100 }}</p>
+                    <a href="{% url 'departments_detail' dept.id %}" class="btn btn-outline-primary">Learn More</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 
-    <p><a href="{% url 'book_appointment' %}">Book an Appointment</a></p>
-</body>
-</html>
+    <!-- Featured Doctors -->
+    <h2 class="mt-5 mb-4">Meet Our Doctors</h2>
+    <div class="row">
+        {% for doc in doctors %}
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 text-center shadow-sm">
+                <img src="{{ doc.photo.url }}" class="card-img-top" alt="{{ doc.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ doc.name }}</h5>
+                    <p class="text-muted">{{ doc.specialization }}</p>
+                    <a href="{% url 'doctor_detail' doc.id %}" class="btn btn-outline-primary btn-sm">View Profile</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
