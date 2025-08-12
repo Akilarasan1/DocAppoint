@@ -43,7 +43,7 @@ def patient_login(request):
 
 
 def departments(request):
-    return render(request, 'core/departments.html')
+    return render(request, 'core/departments_list.html')
 
 def doctors(request):
     return render(request, 'core/doctors.html')
@@ -54,7 +54,7 @@ def doctors(request):
 
 def departments_list(request):
     departments = Department.objects.all()
-    return render(request, 'core/departments.html', {'departments': departments})
+    return render(request, 'core/departments_list.html', {'departments': departments})
 
 def departments_detail(request, pk):
     department = get_object_or_404(Department, pk=pk)

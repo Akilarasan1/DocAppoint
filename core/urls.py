@@ -22,7 +22,7 @@ urlpatterns = [
     # path('departments/', views.departments, name='departments'),
     path("doctors/", views.doctors, name='doctors'),
     # path("departments_detail/", views.departments_detail, name='departments_detail'),
-    path('departments/', views.departments_list, name='departments'),
+    path('departments/', views.departments_list, name='departments_list'),
     path('departments/<int:pk>/', views.departments_detail, name='departments_detail'),
 ]
 

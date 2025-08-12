@@ -20,7 +20,7 @@
 
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'departments' %}">Departments</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'departments_list' %}">Departments</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'doctors' %}">Doctors</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'book_appointment' %}">Book Appointment</a></li>
                     {% if user.is_authenticated %}
