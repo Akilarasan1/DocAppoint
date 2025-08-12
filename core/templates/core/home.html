@@ -11,7 +11,7 @@
             <a href="{% url 'book_appointment' %}" class="btn btn-primary btn-lg">Book an Appointment</a>
         </div>
         <div class="col-md-6">
-            <img src="{% static 'images/hospital_banner.jpg' %}" class="img-fluid rounded shadow" alt="Hospital">
+            <img src="{% static 'images/hospital_banner.png' %}" class="img-fluid rounded shadow" alt="Hospital">
         </div>
     </div>
 
@@ -24,7 +24,9 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ dept.name }}</h5>
                     <p class="card-text">{{ dept.description|truncatechars:100 }}</p>
-                    <a href="{% url 'departments_detail' dept.id %}" class="btn btn-outline-primary">Learn More</a>
+{#                  {% url 'departments_detail' dept.pk %}#}
+
+                    <a href="{% url 'departments_detail' dept.pk %}" class="btn btn-outline-primary">Learn More</a>
                 </div>
             </div>
         </div>

@@ -1,17 +1,16 @@
-{% extends 'base.html' %}
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Departments</title>
-</head>
-<body>
-
+{% extends "base.html" %}
 {% block content %}
-<h1>Our Departments</h1>
-<p>List of departments will go here.</p>
+<h2>Our Departments</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 20px;">
+    {% for dept in departments %}
+        <div style="border: 1px solid #ccc; padding: 10px; width: 250px;">
+            {% if dept.image %}
+                <img src="{{ dept.image.url }}" alt="{{ dept.name }}" style="width:100%;">
+            {% endif %}
+            <h3>{{ dept.name }}</h3>
+            <p>{{ dept.description|truncatewords:15 }}</p>
+            <a href="{% url 'departments_detail' dept.pk %}">Read more</a>
+        </div>
+    {% endfor %}
+</div>
 {% endblock %}
-
-</body>
-</html>

@@ -47,9 +47,22 @@ def departments(request):
 
 def doctors(request):
     return render(request, 'core/doctors.html')
-def departments_detail(request, department_id):
-    department = get_object_or_404(Department, pk=department_id)
-    return render(request, "core/departments_detail.html", {'department': department})
+# def departments_detail(request, department_id):
+#     department = get_object_or_404(Department, pk=department_id)
+#     return render(request, "core/departments_detail.html", {'department': department})
+
+
+def departments_list(request):
+    departments = Department.objects.all()
+    return render(request, 'core/departments.html', {'departments': departments})
+
+def departments_detail(request, pk):
+    department = get_object_or_404(Department, pk=pk)
+    return render(request, 'core/departments_detail.html', {'department': department})
+
+
+
+
 
 def doctor_login(request):
     if request.method == 'POST':
