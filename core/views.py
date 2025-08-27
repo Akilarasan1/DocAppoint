@@ -1,5 +1,5 @@
-from django.shortcuts import render
-from .models import Appointment, Doctor, Patient
+from django.shortcuts import render,redirect
+from .models import Appointment, Doctor, Patient, Department
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from .forms import AppointmentForm
@@ -17,7 +17,41 @@ from django.http import HttpResponseForbidden
 
 from .forms import DoctorProfileForm
 
-from .models import Department, Doctor
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+def custom_login(request):
+    if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
+        role = request.POST['role']
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            if user.role == role:  # ✅ Match role
+                login(request, user)
+                return redirect('home')
+            else:
+                messages.error(request, "Role mismatch! Please login with correct role.")
+        else:
+            messages.error(request, "Invalid credentials.")
+    return render(request, 'login.html')
+
+
+
+
+def dashboard_redirect(request):
+    if hasattr(request.user, 'patient'):
+        return redirect('patient_dashboard')
+    elif hasattr(request.user, 'doctor'):
+        return redirect('doctor_dashboard')
+    else:
+        return redirect('home')
+
+
+def doctors_list(request):
+    doctors = Doctor.objects.all()
+    return render(request, 'core/doctors_list.html', {'doctors': doctors})
 
 def homepage(request):
     departments = Department.objects.all()[:6]  # Limit to 6 for neatness
@@ -59,10 +93,6 @@ def departments_list(request):
 def departments_detail(request, pk):
     department = get_object_or_404(Department, pk=pk)
     return render(request, 'core/departments_detail.html', {'department': department})
-
-
-
-
 
 def doctor_login(request):
     if request.method == 'POST':
@@ -139,6 +169,8 @@ def register(request):
             gender = form.cleaned_data.get('gender')
             phone = form.cleaned_data.get('phone')
             address = form.cleaned_data.get('address')
+            role = form.POST.get("role")
+
 
             Patient.objects.create(
                 user=user,
@@ -147,7 +179,8 @@ def register(request):
                 age=age,
                 gender=gender,
                 phone=phone,
-                address=address
+                address=address,
+                role = role
             )
             login(request, user)
             return redirect('home')

@@ -24,6 +24,8 @@ urlpatterns = [
     # path("departments_detail/", views.departments_detail, name='departments_detail'),
     path('departments/', views.departments_list, name='departments_list'),
     path('departments/<int:pk>/', views.departments_detail, name='departments_detail'),
+    path('dashboard/', views.dashboard_redirect, name='dashboard'),
+
 ]
 
 if settings.DEBUG:
