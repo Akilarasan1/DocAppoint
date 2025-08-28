@@ -3,6 +3,7 @@ from .models import Appointment
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Doctor, Patient
+from django.contrib import admin
 
 class AppointmentForm(forms.ModelForm):
     patient = forms.CharField(label="Patient Name")
@@ -34,3 +35,7 @@ class DoctorProfileForm(forms.ModelForm):
     class Meta:
         model = Doctor
         fields = ['name', 'specialization', 'email']
+
+class DoctorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'specialization', 'email', 'department')
+    search_fields = ('name', 'specialization', 'email')

@@ -14,9 +14,10 @@ from django.core.mail import send_mail
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.http import HttpResponseForbidden
-
 from .forms import DoctorProfileForm
-
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse_lazy
+from django.contrib import messages
 
 def custom_login(request):
     if request.method == "POST":
@@ -36,12 +37,28 @@ def custom_login(request):
     return render(request, 'login.html')
 
 ## doctor login 
+# def doctor_login(request):
+#     if request.method == 'POST':
+#         form = AuthenticationForm(data=request.POST)
+#         if form.is_valid():
+#             user = form.get_user()
+#             if hasattr(user, 'doctor'):
+#                 login(request, user)
+#                 return redirect('doctor_dashboard')
+#             else:
+#                 messages.error(request, "This login is for doctors only.")
+#                 return redirect('doctor_login')
+#     else:
+#         form = AuthenticationForm()
+#     return render(request, 'core/doctor_login.html', {'form': form})
+
+
 def doctor_login(request):
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            if hasattr(user, 'doctor'):
+            if hasattr(user, 'doctor'):  
                 login(request, user)
                 return redirect('doctor_dashboard')
             else:
@@ -50,6 +67,7 @@ def doctor_login(request):
     else:
         form = AuthenticationForm()
     return render(request, 'core/doctor_login.html', {'form': form})
+
 
 
 def patient_login(request):
@@ -290,19 +308,42 @@ def admin_dashboard(request):
     return render(request, "core/admin_dashboard.html", context)
 
 
+# @login_required
+# def doctor_profile(request):
+#     if not hasattr(request.user, 'doctor'):
+#         return redirect('login')  # Just in case
+
+#     doctor = request.user.doctor
+
+#     if request.method == 'POST':
+#         form = DoctorProfileForm(request.POST, instance=doctor)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('doctor_profile')
+#     else:
+#         form = DoctorProfileForm(instance=doctor)
+
+#     return render(request, 'core/doctor_profile.html', {'form': form})
+
 @login_required
 def doctor_profile(request):
-    if not hasattr(request.user, 'doctor'):
-        return redirect('login')  # Just in case
-
-    doctor = request.user.doctor
-
+    doctor = request.user.doctor  # get current doctor's profile
     if request.method == 'POST':
         form = DoctorProfileForm(request.POST, instance=doctor)
         if form.is_valid():
             form.save()
-            return redirect('doctor_profile')
+            messages.success(request, "Profile updated successfully!")
+            return redirect('doctor_dashboard')
     else:
         form = DoctorProfileForm(instance=doctor)
-
     return render(request, 'core/doctor_profile.html', {'form': form})
+
+
+
+class DoctorPasswordChangeView(PasswordChangeView):
+    template_name = 'core/doctor_password_change.html'
+    success_url = reverse_lazy('doctor_dashboard')  # Redirect to doctor dashboard
+
+    def form_valid(self, form):
+        messages.success(self.request, "Your password has been changed successfully.")
+        return super().form_valid(form)

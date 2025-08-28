@@ -22,10 +22,8 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{% url 'departments_list' %}">Departments</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'doctors' %}">Doctors</a></li>
-                    <!-- <li class="nav-item"><a class="nav-link" href="{% url 'book_appointment' %}">Book Appointment</a></li> -->
 
                {% if user.is_authenticated %}
-
                     {% if user.role == "patient" %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'book_appointment' %}">Book Appointment</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'patient_dashboard' %}">Dashboard</a></li>
