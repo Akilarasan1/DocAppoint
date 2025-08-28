@@ -1,18 +1,25 @@
 from django import forms
 from .models import Appointment
 from django.contrib.auth.forms import UserCreationForm
-# from django.contrib.auth.models import User
-from .models import Doctor
-from django.contrib.auth import get_user_model
-User = get_user_model()
-
+from django.contrib.auth.models import User
+from .models import Doctor, Patient
 
 class AppointmentForm(forms.ModelForm):
+    patient = forms.CharField(label="Patient Name")
+
     class Meta:
         model = Appointment
-        fields = ['patient', 'doctor', 'appointment_date', 'appointment_time', 'description']
+        fields = ['patient', 'doctor', 'appointment_datetime', 'description']
+        widgets = {
+            'appointment_datetime': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }
 
+    def clean_patient(self):
+        patient_name = self.cleaned_data['patient']
+        patient, created = Patient.objects.get_or_create(name=patient_name)
+        return patient
 
+        
 class PatientSignUpForm(UserCreationForm):
     age = forms.IntegerField()
     gender = forms.ChoiceField(choices=[('Male', 'Male'), ('Female', 'Female')])

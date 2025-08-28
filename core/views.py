@@ -86,8 +86,6 @@ def register(request):
             gender = form.cleaned_data.get('gender')
             phone = form.cleaned_data.get('phone')
             address = form.cleaned_data.get('address')
-            # role = form.cleaned_data.get("role")
-
 
             Patient.objects.create(
                 user=user,
@@ -169,7 +167,7 @@ def departments_detail(request, pk):
 
 @login_required
 def book_appointment(request):
-    # 1️⃣ Decide which patient to use
+    # 1️ Decide which patient to use
     if hasattr(request.user, 'patient'):
         # Logged-in user is a patient
         patient = request.user.patient
@@ -185,7 +183,6 @@ def book_appointment(request):
         else:
             patient = None  # No patient yet for GET requests
 
-    # 2️⃣ Process form
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
         if form.is_valid() and patient:
@@ -195,7 +192,7 @@ def book_appointment(request):
 
             send_mail(
                 'Appointment Request Received',
-                f'Dear {patient.name},\n\nYour appointment request with Dr. {appointment.doctor.name} on {appointment.appointment_date} at {appointment.appointment_time} has been received and is pending approval.\n\nThank you!',
+                f'Dear {patient.name},\n\nYour appointment request with Dr. {appointment.doctor.name} on {appointment.appointment_datetime} has been received and is pending approval.\n\nThank you!',
                 'akshospital@gmail.com',
                 [patient.email],
                 fail_silently=False,
