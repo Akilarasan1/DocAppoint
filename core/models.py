@@ -1,22 +1,35 @@
 from django.db import models
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+from django.conf import settings
+# from django.contrib import settings
+
+# User = get_user_model()
+
+
 
 class Department(models.Model):
     name = models.CharField(max_length = 100)
     description = models.TextField(blank = True)
+    image = models.ImageField(upload_to='images/', blank=True, null=True)
 
     def __str__(self):
         return self.name
-    
+
+class CustomUser(AbstractUser):
+    ROLE_CHOICES = (
+        ('patient', 'Patient'),
+        ('doctor', 'Doctor'),
+    )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='patient')
 
 class Doctor(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE,null=True, blank=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=100)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     email = models.EmailField()
     phone = models.CharField(max_length=15)
     is_featured = models.BooleanField(default=False)
-
     available_days = models.CharField(max_length=100)
     available_time = models.CharField(max_length=50)
     specialization = models.CharField(max_length=100)
@@ -25,7 +38,7 @@ class Doctor(models.Model):
         return f"Dr. {self.name} ({self.department.name})"
 
 class Patient(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE,null=True, blank=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=100)
     age = models.PositiveBigIntegerField()
     gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female')])

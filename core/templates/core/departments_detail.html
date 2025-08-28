@@ -1,13 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>department details</title>
-</head>
-<body>
+{% extends "base.html" %}
 {% block content %}
-<h1>Our Departments detail </h1>
-<p>List of departments will go here.</p>
+<h2>{{ department.name }}</h2>
+{% if department.image %}
+    <img src="{{ department.image.url }}" alt="{{ department.name }}" style="width:300px;">
+{% endif %}
+<p>{{ department.description }}</p>
+<a href="{% url 'departments_list' %}">Back to Departments</a>
 {% endblock %}
-</body>
-</html>

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Our Doctors</h2>
+<div class="row">
+  {% for doctor in doctors %}
+    <div class="col-md-4">
+      <div class="card">
+        {% if doctor.image %}
+          <img src="{{ doctor.image.url }}" class="card-img-top" alt="{{ doctor.name }}">
+        {% endif %}
+        <div class="card-body">
+          <h5>{{ doctor.name }}</h5>
+          <p>{{ doctor.specialization }}</p>
+          <p><strong>Department:</strong> {{ doctor.department.name }}</p>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
