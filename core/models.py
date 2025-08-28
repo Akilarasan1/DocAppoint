@@ -1,7 +1,12 @@
 from django.db import models
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+# from django.contrib import settings
+
+# User = get_user_model()
+
+
 
 class Department(models.Model):
     name = models.CharField(max_length = 100)
@@ -25,7 +30,6 @@ class Doctor(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=15)
     is_featured = models.BooleanField(default=False)
-
     available_days = models.CharField(max_length=100)
     available_time = models.CharField(max_length=50)
     specialization = models.CharField(max_length=100)

@@ -22,23 +22,9 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{% url 'departments_list' %}">Departments</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'doctors' %}">Doctors</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'book_appointment' %}">Book Appointment</a></li>
-
-
-{#                    {% if user.is_authenticated %}#}
-{#                     <li class="nav-item"> <a class="nav-link">Hello, {{ user.username }}</a> </li>#}
-{##}
-{#                        <li class="nav-item"><a class="nav-link" href="{% url 'patient_dashboard' %}">Dashboard</a></li>#}
-{#                        <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>#}
-{#                    {% else %}#}
-{#                        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>#}
-{#                        <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>#}
-{#                    {% endif %}#}
-
-
+                    <!-- <li class="nav-item"><a class="nav-link" href="{% url 'book_appointment' %}">Book Appointment</a></li> -->
 
                {% if user.is_authenticated %}
-                    <li class="nav-item"><span class="navbar-text">Hello, {{ user.username }}</span></li>
 
                     {% if user.role == "patient" %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'book_appointment' %}">Book Appointment</a></li>
@@ -46,6 +32,7 @@
                     {% elif user.role == "doctor" %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'doctor_dashboard' %}">Doctor Dashboard</a></li>
                     {% endif %}
+                    <li class="nav-item"><span class="navbar-text">Hello, {{ user.username }}</span></li>
 
                     <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
                 {% else %}
