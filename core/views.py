@@ -58,6 +58,8 @@ def doctor_login(request):
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
+            print("Logged in as:", user.username)
+            print("Has doctor profile?", hasattr(user, 'doctor'))
             if hasattr(user, 'doctor'):  
                 login(request, user)
                 return redirect('doctor_dashboard')
@@ -123,21 +125,27 @@ def register(request):
 def user_login(request):
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
+        role = request.POST.get("role")
+        print("username >>>>>>>>>", form)
+
         if form.is_valid():
             user = form.get_user()
+            print("username >>>>>>>>>", user.username)
             login(request, user)
-
             try:
-                if hasattr(user, 'patient'):
+                if role == "patient" and hasattr(user, 'patient'):
                     return redirect('patient_dashboard')
-                elif hasattr(user, 'doctor'):
+                elif role == "doctor" and hasattr(user, 'doctor'):
+                    print("role >>>> doctor  ", user.doctor)
                     return redirect('doctor_dashboard')
                 else:
-                    return redirect('home')
+                    messages.error(request, "Invalid role or user does not have this profile.")
+                    return redirect('login')
             except ObjectDoesNotExist:
-                return redirect('home')
-
+                messages.error(request, "User profile not found.")
+                return redirect('login')
     else:
+        print("error while trying to log in using doc")
         form = AuthenticationForm()
     return render(request, 'core/login.html', {'form': form})
 
@@ -185,9 +193,7 @@ def departments_detail(request, pk):
 
 @login_required
 def book_appointment(request):
-    # 1️ Decide which patient to use
     if hasattr(request.user, 'patient'):
-        # Logged-in user is a patient
         patient = request.user.patient
     else:
         # Logged-in user is NOT a patient — must select a patient in form
