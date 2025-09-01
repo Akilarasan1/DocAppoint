@@ -19,83 +19,22 @@ from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 from django.contrib import messages
 
-def custom_login(request):
-    if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-        role = request.POST['role']
+# def custom_login(request):
+#     if request.method == "POST":
+#         username = request.POST['username']
+#         password = request.POST['password']
+#         role = request.POST['role']
 
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            if user.role == role: 
-                login(request, user)
-                return redirect('home')
-            else:
-                messages.error(request, "Role mismatch! Please login with correct role.")
-        else:
-            messages.error(request, "Invalid credentials.")
-    return render(request, 'login.html')
-
-## doctor login 
-# def doctor_login(request):
-#     if request.method == 'POST':
-#         form = AuthenticationForm(data=request.POST)
-#         if form.is_valid():
-#             user = form.get_user()
-#             if hasattr(user, 'doctor'):
+#         user = authenticate(request, username=username, password=password)
+#         if user is not None:
+#             if user.role == role: 
 #                 login(request, user)
-#                 return redirect('doctor_dashboard')
+#                 return redirect('home')
 #             else:
-#                 messages.error(request, "This login is for doctors only.")
-#                 return redirect('doctor_login')
-#     else:
-#         form = AuthenticationForm()
-#     return render(request, 'core/doctor_login.html', {'form': form})
-
-
-def doctor_login(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            print("Logged in as:", user.username)
-            print("Has doctor profile?", hasattr(user, 'doctor'))
-            if hasattr(user, 'doctor'):  
-                login(request, user)
-                return redirect('doctor_dashboard')
-            else:
-                messages.error(request, "This login is for doctors only.")
-                return redirect('doctor_login')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'core/doctor_login.html', {'form': form})
-
-
-
-def patient_login(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            if hasattr(user, 'patient'):
-                login(request, user)
-                return redirect('patient_dashboard')
-            else:
-                messages.error(request, "This login is for patients only.")
-                return redirect('patient_login')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'core/patient_login.html', {'form': form})
-
-
-def dashboard_redirect(request):
-    if hasattr(request.user, 'patient'):
-        return redirect('patient_dashboard')
-    elif hasattr(request.user, 'doctor'):
-        return redirect('doctor_dashboard')
-    else:
-        return redirect('home')
-    
+#                 messages.error(request, "Role mismatch! Please login with correct role.")
+#         else:
+#             messages.error(request, "Invalid credentials.")
+#     return render(request, 'login.html')
 
 def register(request):
     if request.method == 'POST':
@@ -122,21 +61,19 @@ def register(request):
         form = PatientSignUpForm()
     return render(request, 'core/register.html', {'form': form})
 
+#USER LOGIN
 def user_login(request):
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
         role = request.POST.get("role")
-        print("username >>>>>>>>>", form)
 
         if form.is_valid():
             user = form.get_user()
-            print("username >>>>>>>>>", user.username)
             login(request, user)
             try:
-                if role == "patient" and hasattr(user, 'patient'):
+                if role == "patient":# and hasattr(user, 'patient'):
                     return redirect('patient_dashboard')
-                elif role == "doctor" and hasattr(user, 'doctor'):
-                    print("role >>>> doctor  ", user.doctor)
+                elif role == "doctor":# and hasattr(user, 'doctor'):
                     return redirect('doctor_dashboard')
                 else:
                     messages.error(request, "Invalid role or user does not have this profile.")
@@ -144,18 +81,64 @@ def user_login(request):
             except ObjectDoesNotExist:
                 messages.error(request, "User profile not found.")
                 return redirect('login')
+            
     else:
         print("error while trying to log in using doc")
         form = AuthenticationForm()
     return render(request, 'core/login.html', {'form': form})
 
 
+#USER LOGOUT
 def user_logout(request):
     logout(request)
     return redirect('home')
 
+#doctor login
+def doctor_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            if hasattr(user, 'doctor'):  
+                login(request, user)
+                return redirect('doctor_dashboard')
+            else:
+                messages.error(request, "This login is for doctors only.")
+                return redirect('doctor_login')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'core/doctor_login.html', {'form': form})
 
-## ----------------######### HOME PAGE
+#patient login
+def patient_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            if hasattr(user, 'patient'):
+                login(request, user)
+                return redirect('patient_dashboard')
+            else:
+                messages.error(request, "This login is for patients only.")
+                return redirect('patient_login')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'core/patient_login.html', {'form': form})
+
+
+def dashboard_redirect(request):
+    if hasattr(request.user, 'patient'):
+        return redirect('patient_dashboard')
+    elif hasattr(request.user, 'doctor'):
+        return redirect('doctor_dashboard')
+    else:
+        return redirect('home')
+    
+
+
+
+
+## ----------------## HOME PAGE
 
 def home(request):
     return render(request, 'core/home.html')
@@ -196,7 +179,6 @@ def book_appointment(request):
     if hasattr(request.user, 'patient'):
         patient = request.user.patient
     else:
-        # Logged-in user is NOT a patient — must select a patient in form
         if request.method == 'POST':
             patient_id = request.POST.get('patient_id')
             try:
@@ -205,7 +187,7 @@ def book_appointment(request):
                 messages.error(request, "Invalid patient selected.")
                 return redirect('home')
         else:
-            patient = None  # No patient yet for GET requests
+            patient = None 
 
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
@@ -225,14 +207,8 @@ def book_appointment(request):
     else:
         form = AppointmentForm()
 
-    # 3️⃣ Pass patient info for template rendering
-    return render(request, 'core/book_appointment.html', {
-        'form': form,
-        'is_patient': hasattr(request.user, 'patient')
-    })
-
-
-
+    return render(request, 'core/book_appointment.html', {'form': form,
+        'is_patient': hasattr(request.user, 'patient')})
 
 
 @login_required
@@ -247,8 +223,6 @@ def patient_dashboard(request):
         'appointments': appointments
     })
      
-
-
 
 @login_required
 def doctor_dashboard(request):
@@ -269,7 +243,7 @@ def approve_appointment(request, appointment_id):
 
     send_mail(
         'Appointment Approved',
-        f'Dear {appointment.patient.name},\n\nYour appointment with Dr. {appointment.doctor.name} on {appointment.appointment_date} at {appointment.appointment_time} has been APPROVED.\n\nThank you!',
+        f'Dear {appointment.patient.name},\n\nYour appointment with Dr. {appointment.doctor.name} on {appointment.appointment_datetime} has been APPROVED.\n\nThank you!',
         'hospital@example.com',
         [appointment.patient.email],
         fail_silently=False,
@@ -312,24 +286,6 @@ def admin_dashboard(request):
     }
 
     return render(request, "core/admin_dashboard.html", context)
-
-
-# @login_required
-# def doctor_profile(request):
-#     if not hasattr(request.user, 'doctor'):
-#         return redirect('login')  # Just in case
-
-#     doctor = request.user.doctor
-
-#     if request.method == 'POST':
-#         form = DoctorProfileForm(request.POST, instance=doctor)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('doctor_profile')
-#     else:
-#         form = DoctorProfileForm(instance=doctor)
-
-#     return render(request, 'core/doctor_profile.html', {'form': form})
 
 @login_required
 def doctor_profile(request):

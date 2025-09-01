@@ -2,7 +2,7 @@ from django import forms
 from .models import Appointment
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Doctor, Patient
+from .models import Doctor, Patient,CustomUser
 from django.contrib import admin
 
 class AppointmentForm(forms.ModelForm):
@@ -21,15 +21,34 @@ class AppointmentForm(forms.ModelForm):
         return patient
 
         
+# class PatientSignUpForm(UserCreationForm):
+#     age = forms.IntegerField()
+#     gender = forms.ChoiceField(choices=[('Male', 'Male'), ('Female', 'Female')])
+#     phone = forms.CharField(max_length=15)
+#     address = forms.CharField(widget=forms.Textarea)
+
+#     class Meta:
+#         model = User
+#         fields = ['username', 'password1', 'password2', 'email', 'age', 'gender', 'phone', 'address']
+
 class PatientSignUpForm(UserCreationForm):
     age = forms.IntegerField()
-    gender = forms.ChoiceField(choices=[('Male', 'Male'), ('Female', 'Female')])
+    gender = forms.ChoiceField(choices=[('M', 'Male'), ('F', 'Female')])
     phone = forms.CharField(max_length=15)
     address = forms.CharField(widget=forms.Textarea)
 
-    class Meta:
-        model = User
+    class Meta(UserCreationForm.Meta):
+        model = CustomUser   # your custom user model
         fields = ['username', 'password1', 'password2', 'email', 'age', 'gender', 'phone', 'address']
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.role = 'patient'   
+        if commit:
+            user.save()
+        return user
+
+
 
 class DoctorProfileForm(forms.ModelForm):
     class Meta:
