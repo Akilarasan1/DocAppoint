@@ -36,6 +36,8 @@ from django.contrib import messages
 #             messages.error(request, "Invalid credentials.")
 #     return render(request, 'login.html')
 
+
+#REGISTER
 def register(request):
     if request.method == 'POST':
         form = PatientSignUpForm(request.POST)
@@ -259,7 +261,7 @@ def reject_appointment(request, appointment_id):
 
     send_mail(
         'Appointment Rejected',
-        f'Dear {appointment.patient.name},\n\nWe regret to inform you that your appointment with Dr. {appointment.doctor.name} on {appointment.appointment_date} at {appointment.appointment_time} has been REJECTED.\n\nPlease try booking another slot.\n\nThank you!',
+        f'Dear {appointment.patient.name},\n\nWe regret to inform you that your appointment with Dr. {appointment.doctor.name} on at {appointment.appointment_datetime} has been REJECTED.\n\nPlease try booking another slot.\n\nThank you!',
         'hospital@example.com',
         [appointment.patient.email],
         fail_silently=False,

@@ -5,6 +5,8 @@
 
   <h3>Your Appointments</h3>
   {% if appointments %}
+  <a href="{% url 'doctor_profile' %}" class="btn btn-outline-info">Edit Profile</a>
+
     <table class="table table-bordered table-striped">
       <thead class="table-primary">
         <tr>
@@ -21,7 +23,7 @@
         <tr>
           <td>{{ appt.patient.name }}</td>
           <td>{{ appt.appointment_datetime|date:"Y-m-d" }}</td>
-          <td>{{ appt.appointment_datetime|time:"H:i" }}</td>
+          <td>{{ appt.appointment_datetime|time:"h:i A" }}</td>
           <td>{{ appt.status }}</td>
           <td>{{ appt.description }}</td>
           <td>

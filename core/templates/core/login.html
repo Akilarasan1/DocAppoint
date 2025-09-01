@@ -28,8 +28,6 @@
     
     <button type="submit" class="btn btn-primary mt-3">Login</button>
 </form>
-
-
     {% if request.GET.next %}
   <div class="alert alert-warning">
     Please log in to continue.
@@ -37,6 +35,13 @@
     {% endif %}
 
     <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+    <div class="container mt-5">
+
+    <p><a href="{% url 'password_reset' %}">Forgot Password?</a></p>
+
+        <!-- <button type="submit" class="btn btn-primary">Change Password</button> -->
+    </form>
+</div>
 </body>
 </html>
 
