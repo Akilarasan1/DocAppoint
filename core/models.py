@@ -17,7 +17,7 @@ class CustomUser(AbstractUser):
         ('patient', 'Patient'),
         ('doctor', 'Doctor'),
     )
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='patient')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='None', null=True)
 
 class Doctor(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)

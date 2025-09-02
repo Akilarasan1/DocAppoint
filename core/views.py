@@ -1,12 +1,9 @@
 from django.shortcuts import render,redirect
 from .models import Appointment, Doctor, Patient, Department
-from django.http import HttpResponseRedirect
-from django.urls import reverse
 from .forms import AppointmentForm
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, logout
 from .forms import PatientSignUpForm
-# from .models import Patient
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect
 from django.core.exceptions import ObjectDoesNotExist
@@ -19,22 +16,11 @@ from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 from django.contrib import messages
 
-# def custom_login(request):
-#     if request.method == "POST":
-#         username = request.POST['username']
-#         password = request.POST['password']
-#         role = request.POST['role']
+from .forms import  PatientExtraForm
+from django.contrib.auth import update_session_auth_hash
+from .forms import PatientProfileForm, PatientExtraForm
+from django.contrib.auth.forms import PasswordChangeForm
 
-#         user = authenticate(request, username=username, password=password)
-#         if user is not None:
-#             if user.role == role: 
-#                 login(request, user)
-#                 return redirect('home')
-#             else:
-#                 messages.error(request, "Role mismatch! Please login with correct role.")
-#         else:
-#             messages.error(request, "Invalid credentials.")
-#     return render(request, 'login.html')
 
 
 #REGISTER
@@ -71,11 +57,12 @@ def user_login(request):
 
         if form.is_valid():
             user = form.get_user()
+
             login(request, user)
             try:
-                if role == "patient":# and hasattr(user, 'patient'):
+                if role == "patient" and hasattr(user, 'patient'):
                     return redirect('patient_dashboard')
-                elif role == "doctor":# and hasattr(user, 'doctor'):
+                elif role == "doctor" and hasattr(user, 'doctor'):
                     return redirect('doctor_dashboard')
                 else:
                     messages.error(request, "Invalid role or user does not have this profile.")
@@ -85,7 +72,6 @@ def user_login(request):
                 return redirect('login')
             
     else:
-        print("error while trying to log in using doc")
         form = AuthenticationForm()
     return render(request, 'core/login.html', {'form': form})
 
@@ -157,6 +143,10 @@ def homepage(request):
         'doctors': doctors
     })
 
+@login_required
+def patient_profile(request):
+    patient = get_object_or_404(Patient, user=request.user)
+    return render(request, 'core/patient_profile.html', {'patient': patient})
 
 
 def departments(request):
@@ -215,7 +205,6 @@ def book_appointment(request):
 
 @login_required
 def patient_dashboard(request):
-    
     if not hasattr(request.user, 'patient'):
         return HttpResponseForbidden("Access denied. You are not a patient.")
     patient = Patient.objects.get(user=request.user)
@@ -311,3 +300,53 @@ class DoctorPasswordChangeView(PasswordChangeView):
     def form_valid(self, form):
         messages.success(self.request, "Your password has been changed successfully.")
         return super().form_valid(form)
+    
+
+
+@login_required
+def patient_profile(request):
+    user = request.user
+    patient = get_object_or_404(Patient, user=user)
+
+    if request.method == 'POST':
+        # Profile update
+        if 'update_profile' in request.POST:
+            profile_form = PatientProfileForm(request.POST, instance=user)
+            extra_form = PatientExtraForm(request.POST, instance=patient)
+            if profile_form.is_valid() and extra_form.is_valid():
+                profile_form.save()
+                extra_form.save()
+                return redirect('patient_profile')  # reload after save
+
+        # Password change
+        # elif 'change_password' in request.POST:
+        #     password_form = PasswordChangeForm(user, request.POST)
+        #     if password_form.is_valid():
+        #         user = password_form.save()
+        #         update_session_auth_hash(request, user)  # keep logged in
+        #         return redirect('patient_profile')
+    else:
+        profile_form = PatientProfileForm(instance=user)
+        extra_form = PatientExtraForm(instance=patient)
+        # password_form = PasswordChangeForm(user)
+
+    return render(request, 'core/patient_profile.html', {
+        'profile_form': profile_form,
+        'extra_form': extra_form,
+        # 'password_form': password_form,
+    })
+
+
+
+@login_required
+def change_password(request):
+    if request.method == "POST":
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # keeps user logged in
+            return redirect("patient_dashboard")
+    else:
+        form = PasswordChangeForm(request.user)
+
+    return render(request, "core/change_password.html", {"form": form})

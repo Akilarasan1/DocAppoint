@@ -26,6 +26,12 @@ urlpatterns = [
     path('departments/<int:pk>/', views.departments_detail, name='departments_detail'),
     path('dashboard/', views.dashboard_redirect, name='dashboard'),
 
+    path("patient/profile/", views.patient_profile, name="patient_profile"),
+
+    path("profile/", views.patient_profile, name="patient_profile"),
+    path("change-password/", views.change_password, name="change_password"),
+
+
     path("password_reset/", auth_views.PasswordResetView.as_view(), name="password_reset"),
     path("password_reset/done/", auth_views.PasswordResetDoneView.as_view(), name="password_reset_done"),
     path("reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
