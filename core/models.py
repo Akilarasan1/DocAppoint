@@ -1,12 +1,8 @@
 from django.db import models
-# from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
-# from django.contrib import settings
 
 # User = get_user_model()
-
-
 
 class Department(models.Model):
     name = models.CharField(max_length = 100)
@@ -21,7 +17,7 @@ class CustomUser(AbstractUser):
         ('patient', 'Patient'),
         ('doctor', 'Doctor'),
     )
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='patient')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='None', null=True)
 
 class Doctor(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
@@ -30,6 +26,7 @@ class Doctor(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=15)
     is_featured = models.BooleanField(default=False)
+
     available_days = models.CharField(max_length=100)
     available_time = models.CharField(max_length=50)
     specialization = models.CharField(max_length=100)
@@ -39,7 +36,7 @@ class Doctor(models.Model):
 
 class Patient(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, blank=True)
     age = models.PositiveBigIntegerField()
     gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female')])
     email = models.EmailField()
@@ -59,12 +56,11 @@ class Appointment(models.Model):
 
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
-    appointment_date = models.DateField()
-    appointment_time = models.TimeField()
+    appointment_datetime = models.DateTimeField(null=True, blank=True)
     description = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
 
     def __str__(self):
-        return f"{self.patient.name} with Dr. {self.doctor.name} on {self.appointment_date}"
+        return f"{self.patient.name} with Dr. {self.doctor.name} on {self.appointment_datetime}"
 
 

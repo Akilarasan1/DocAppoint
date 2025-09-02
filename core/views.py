@@ -1,12 +1,9 @@
 from django.shortcuts import render,redirect
 from .models import Appointment, Doctor, Patient, Department
-from django.http import HttpResponseRedirect
-from django.urls import reverse
 from .forms import AppointmentForm
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, logout
 from .forms import PatientSignUpForm
-# from .models import Patient
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect
 from django.core.exceptions import ObjectDoesNotExist
@@ -14,34 +11,83 @@ from django.core.mail import send_mail
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.http import HttpResponseForbidden
-
 from .forms import DoctorProfileForm
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse_lazy
+from django.contrib import messages
+
+from .forms import  PatientExtraForm
+from django.contrib.auth import update_session_auth_hash
+from .forms import PatientProfileForm, PatientExtraForm
+from django.contrib.auth.forms import PasswordChangeForm
 
 
-def custom_login(request):
-    if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-        role = request.POST['role']
 
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            if user.role == role: 
-                login(request, user)
-                return redirect('home')
-            else:
-                messages.error(request, "Role mismatch! Please login with correct role.")
-        else:
-            messages.error(request, "Invalid credentials.")
-    return render(request, 'login.html')
+#REGISTER
+def register(request):
+    if request.method == 'POST':
+        form = PatientSignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            age = form.cleaned_data.get('age')
+            gender = form.cleaned_data.get('gender')
+            phone = form.cleaned_data.get('phone')
+            address = form.cleaned_data.get('address')
 
-## doctor login 
+            Patient.objects.create(
+                user=user,
+                name=user.username,
+                email=user.email,
+                age=age,
+                gender=gender,
+                phone=phone,
+                address=address,
+            )
+            login(request, user)
+            return redirect('home')
+    else:
+        form = PatientSignUpForm()
+    return render(request, 'core/register.html', {'form': form})
+
+#USER LOGIN
+def user_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        role = request.POST.get("role")
+
+        if form.is_valid():
+            user = form.get_user()
+
+            login(request, user)
+            try:
+                if role == "patient" and hasattr(user, 'patient'):
+                    return redirect('patient_dashboard')
+                elif role == "doctor" and hasattr(user, 'doctor'):
+                    return redirect('doctor_dashboard')
+                else:
+                    messages.error(request, "Invalid role or user does not have this profile.")
+                    return redirect('login')
+            except ObjectDoesNotExist:
+                messages.error(request, "User profile not found.")
+                return redirect('login')
+            
+    else:
+        form = AuthenticationForm()
+    return render(request, 'core/login.html', {'form': form})
+
+
+#USER LOGOUT
+def user_logout(request):
+    logout(request)
+    return redirect('home')
+
+#doctor login
 def doctor_login(request):
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            if hasattr(user, 'doctor'):
+            if hasattr(user, 'doctor'):  
                 login(request, user)
                 return redirect('doctor_dashboard')
             else:
@@ -51,7 +97,7 @@ def doctor_login(request):
         form = AuthenticationForm()
     return render(request, 'core/doctor_login.html', {'form': form})
 
-
+#patient login
 def patient_login(request):
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
@@ -77,61 +123,10 @@ def dashboard_redirect(request):
         return redirect('home')
     
 
-def register(request):
-    if request.method == 'POST':
-        form = PatientSignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            age = form.cleaned_data.get('age')
-            gender = form.cleaned_data.get('gender')
-            phone = form.cleaned_data.get('phone')
-            address = form.cleaned_data.get('address')
-            # role = form.cleaned_data.get("role")
 
 
-            Patient.objects.create(
-                user=user,
-                name=user.username,
-                email=user.email,
-                age=age,
-                gender=gender,
-                phone=phone,
-                address=address,
-            )
-            login(request, user)
-            return redirect('home')
-    else:
-        form = PatientSignUpForm()
-    return render(request, 'core/register.html', {'form': form})
 
-def user_login(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-
-            try:
-                if hasattr(user, 'patient'):
-                    return redirect('patient_dashboard')
-                elif hasattr(user, 'doctor'):
-                    return redirect('doctor_dashboard')
-                else:
-                    return redirect('home')
-            except ObjectDoesNotExist:
-                return redirect('home')
-
-    else:
-        form = AuthenticationForm()
-    return render(request, 'core/login.html', {'form': form})
-
-
-def user_logout(request):
-    logout(request)
-    return redirect('home')
-
-
-## ----------------######### HOME PAGE
+## ----------------## HOME PAGE
 
 def home(request):
     return render(request, 'core/home.html')
@@ -148,6 +143,10 @@ def homepage(request):
         'doctors': doctors
     })
 
+@login_required
+def patient_profile(request):
+    patient = get_object_or_404(Patient, user=request.user)
+    return render(request, 'core/patient_profile.html', {'patient': patient})
 
 
 def departments(request):
@@ -169,12 +168,9 @@ def departments_detail(request, pk):
 
 @login_required
 def book_appointment(request):
-    # 1️⃣ Decide which patient to use
     if hasattr(request.user, 'patient'):
-        # Logged-in user is a patient
         patient = request.user.patient
     else:
-        # Logged-in user is NOT a patient — must select a patient in form
         if request.method == 'POST':
             patient_id = request.POST.get('patient_id')
             try:
@@ -183,9 +179,8 @@ def book_appointment(request):
                 messages.error(request, "Invalid patient selected.")
                 return redirect('home')
         else:
-            patient = None  # No patient yet for GET requests
+            patient = None 
 
-    # 2️⃣ Process form
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
         if form.is_valid() and patient:
@@ -195,7 +190,7 @@ def book_appointment(request):
 
             send_mail(
                 'Appointment Request Received',
-                f'Dear {patient.name},\n\nYour appointment request with Dr. {appointment.doctor.name} on {appointment.appointment_date} at {appointment.appointment_time} has been received and is pending approval.\n\nThank you!',
+                f'Dear {patient.name},\n\nYour appointment request with Dr. {appointment.doctor.name} on {appointment.appointment_datetime} has been received and is pending approval.\n\nThank you!',
                 'akshospital@gmail.com',
                 [patient.email],
                 fail_silently=False,
@@ -204,19 +199,12 @@ def book_appointment(request):
     else:
         form = AppointmentForm()
 
-    # 3️⃣ Pass patient info for template rendering
-    return render(request, 'core/book_appointment.html', {
-        'form': form,
-        'is_patient': hasattr(request.user, 'patient')
-    })
-
-
-
+    return render(request, 'core/book_appointment.html', {'form': form,
+        'is_patient': hasattr(request.user, 'patient')})
 
 
 @login_required
 def patient_dashboard(request):
-    
     if not hasattr(request.user, 'patient'):
         return HttpResponseForbidden("Access denied. You are not a patient.")
     patient = Patient.objects.get(user=request.user)
@@ -226,8 +214,6 @@ def patient_dashboard(request):
         'appointments': appointments
     })
      
-
-
 
 @login_required
 def doctor_dashboard(request):
@@ -248,7 +234,7 @@ def approve_appointment(request, appointment_id):
 
     send_mail(
         'Appointment Approved',
-        f'Dear {appointment.patient.name},\n\nYour appointment with Dr. {appointment.doctor.name} on {appointment.appointment_date} at {appointment.appointment_time} has been APPROVED.\n\nThank you!',
+        f'Dear {appointment.patient.name},\n\nYour appointment with Dr. {appointment.doctor.name} on {appointment.appointment_datetime} has been APPROVED.\n\nThank you!',
         'hospital@example.com',
         [appointment.patient.email],
         fail_silently=False,
@@ -264,7 +250,7 @@ def reject_appointment(request, appointment_id):
 
     send_mail(
         'Appointment Rejected',
-        f'Dear {appointment.patient.name},\n\nWe regret to inform you that your appointment with Dr. {appointment.doctor.name} on {appointment.appointment_date} at {appointment.appointment_time} has been REJECTED.\n\nPlease try booking another slot.\n\nThank you!',
+        f'Dear {appointment.patient.name},\n\nWe regret to inform you that your appointment with Dr. {appointment.doctor.name} on at {appointment.appointment_datetime} has been REJECTED.\n\nPlease try booking another slot.\n\nThank you!',
         'hospital@example.com',
         [appointment.patient.email],
         fail_silently=False,
@@ -292,20 +278,75 @@ def admin_dashboard(request):
 
     return render(request, "core/admin_dashboard.html", context)
 
-
 @login_required
 def doctor_profile(request):
-    if not hasattr(request.user, 'doctor'):
-        return redirect('login')  # Just in case
-
-    doctor = request.user.doctor
-
+    doctor = request.user.doctor  # get current doctor's profile
     if request.method == 'POST':
         form = DoctorProfileForm(request.POST, instance=doctor)
         if form.is_valid():
             form.save()
-            return redirect('doctor_profile')
+            messages.success(request, "Profile updated successfully!")
+            return redirect('doctor_dashboard')
     else:
         form = DoctorProfileForm(instance=doctor)
-
     return render(request, 'core/doctor_profile.html', {'form': form})
+
+
+
+class DoctorPasswordChangeView(PasswordChangeView):
+    template_name = 'core/doctor_password_change.html'
+    success_url = reverse_lazy('doctor_dashboard')  # Redirect to doctor dashboard
+
+    def form_valid(self, form):
+        messages.success(self.request, "Your password has been changed successfully.")
+        return super().form_valid(form)
+    
+
+
+@login_required
+def patient_profile(request):
+    user = request.user
+    patient = get_object_or_404(Patient, user=user)
+
+    if request.method == 'POST':
+        # Profile update
+        if 'update_profile' in request.POST:
+            profile_form = PatientProfileForm(request.POST, instance=user)
+            extra_form = PatientExtraForm(request.POST, instance=patient)
+            if profile_form.is_valid() and extra_form.is_valid():
+                profile_form.save()
+                extra_form.save()
+                return redirect('patient_profile')  # reload after save
+
+        # Password change
+        # elif 'change_password' in request.POST:
+        #     password_form = PasswordChangeForm(user, request.POST)
+        #     if password_form.is_valid():
+        #         user = password_form.save()
+        #         update_session_auth_hash(request, user)  # keep logged in
+        #         return redirect('patient_profile')
+    else:
+        profile_form = PatientProfileForm(instance=user)
+        extra_form = PatientExtraForm(instance=patient)
+        # password_form = PasswordChangeForm(user)
+
+    return render(request, 'core/patient_profile.html', {
+        'profile_form': profile_form,
+        'extra_form': extra_form,
+        # 'password_form': password_form,
+    })
+
+
+
+@login_required
+def change_password(request):
+    if request.method == "POST":
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # keeps user logged in
+            return redirect("patient_dashboard")
+    else:
+        form = PasswordChangeForm(request.user)
+
+    return render(request, "core/change_password.html", {"form": form})
