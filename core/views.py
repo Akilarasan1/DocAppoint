@@ -302,7 +302,6 @@ class DoctorPasswordChangeView(PasswordChangeView):
         return super().form_valid(form)
     
 
-
 @login_required
 def patient_profile(request):
     user = request.user
@@ -318,17 +317,9 @@ def patient_profile(request):
                 extra_form.save()
                 return redirect('patient_profile')  # reload after save
 
-        # Password change
-        # elif 'change_password' in request.POST:
-        #     password_form = PasswordChangeForm(user, request.POST)
-        #     if password_form.is_valid():
-        #         user = password_form.save()
-        #         update_session_auth_hash(request, user)  # keep logged in
-        #         return redirect('patient_profile')
     else:
         profile_form = PatientProfileForm(instance=user)
         extra_form = PatientExtraForm(instance=patient)
-        # password_form = PasswordChangeForm(user)
 
     return render(request, 'core/patient_profile.html', {
         'profile_form': profile_form,

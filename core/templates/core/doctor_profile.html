@@ -1,14 +1,26 @@
-{% extends 'core/../base.html' %}
+{% extends "base.html" %}
 
 {% block content %}
-  <h2>Doctor Profile</h2>
-  <form method="post">
-     {% csrf_token %}
-     {{ form.as_p }}
-    <button type="submit" class="btn btn-success">Update</button>
-  </form>
-  <br>
-  <a href="{% url 'doctor_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
-    <p><a href="{% url 'password_reset' %}">Reset Password?</a></p>
+<div class="container mt-5">
+    <h2>Doctor Profile</h2>
 
-  {% endblock %}
+    <!-- Profile update form -->
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Update</button>
+    </form>
+
+    <hr>
+
+    <!-- Password actions -->
+    <h4>Account Settings</h4>
+    <p>
+        <a href="{% url 'doctor_change_password' %}" class="btn btn-warning">Change Password</a>
+        <a href="{% url 'doctor_password_reset' %}" class="btn btn-danger">Forgot Password?</a>
+    </p>
+
+    <hr>
+    <a href="{% url 'doctor_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+{% endblock %}
