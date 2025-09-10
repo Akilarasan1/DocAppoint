@@ -45,6 +45,9 @@ def register(request):
             )
             login(request, user)
             return redirect('home')
+        else:
+            # Print form errors to debug
+            print("Form errors:", form.errors)
     else:
         form = PatientSignUpForm()
     return render(request, 'core/register.html', {'form': form})
@@ -57,12 +60,13 @@ def user_login(request):
 
         if form.is_valid():
             user = form.get_user()
-
             login(request, user)
             try:
                 if role == "patient" and hasattr(user, 'patient'):
+                    print("<<<<<<<<< patient login >>>>>>>>>")
                     return redirect('patient_dashboard')
                 elif role == "doctor" and hasattr(user, 'doctor'):
+                    print("<<<<<<< doctor login >>>>>>>>>>")
                     return redirect('doctor_dashboard')
                 else:
                     messages.error(request, "Invalid role or user does not have this profile.")
@@ -72,6 +76,7 @@ def user_login(request):
                 return redirect('login')
             
     else:
+        print("<<<<<<<<< login error occurred >>>>>>>>>>")
         form = AuthenticationForm()
     return render(request, 'core/login.html', {'form': form})
 
