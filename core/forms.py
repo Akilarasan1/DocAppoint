@@ -6,9 +6,54 @@ from .models import Doctor, Patient,CustomUser
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from .models import Patient
-
+from django import forms
+from django import forms
+from django.utils import timezone
 
 User = get_user_model()
+
+# core/forms.py
+from .models import Appointment
+
+class AppointmentSymptomForm(forms.ModelForm):
+    class Meta:
+        model = Appointment
+        fields = ['patient_name', 'doctor', 'date', 'symptom']  # use your actual model fields
+
+
+
+
+
+class GuestAppointmentForm(forms.Form):
+    name = forms.CharField(max_length=100, required=True)
+    email = forms.EmailField(required=True)
+    phone = forms.CharField(max_length=15, required=True)
+    symptoms = forms.CharField(
+        widget=forms.Textarea(attrs={'placeholder': 'Describe your symptoms...'}),
+        label="Your Symptoms"
+    )
+    appointment_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        required=True
+    )
+    appointment_time = forms.TimeField(
+        widget=forms.TimeInput(attrs={'type': 'time'}),
+        required=True
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        appointment_date = cleaned_data.get("appointment_date")
+        appointment_time = cleaned_data.get("appointment_time")
+
+        if appointment_date and appointment_time:
+            combined_dt = timezone.make_aware(
+                timezone.datetime.combine(appointment_date, appointment_time)
+            )
+            if combined_dt < timezone.now():
+                raise forms.ValidationError("Appointment time cannot be in the past.")
+            cleaned_data["appointment_datetime"] = combined_dt
+        return cleaned_data
 
 
 class AppointmentForm(forms.ModelForm):

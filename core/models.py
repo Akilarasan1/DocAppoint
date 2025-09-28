@@ -4,6 +4,9 @@ from django.conf import settings
 
 # User = get_user_model()
 
+
+
+
 class Department(models.Model):
     name = models.CharField(max_length = 100)
     description = models.TextField(blank = True)
@@ -64,3 +67,27 @@ class Appointment(models.Model):
         return f"{self.patient.name} with Dr. {self.doctor.name} on {self.appointment_datetime}"
 
 
+
+class Appointment(models.Model):
+    patient_name = models.CharField(max_length=100)
+    symptom = models.TextField()
+    date = models.DateTimeField()
+
+class GuestAppointment(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    ]
+
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=15)
+    symptoms = models.TextField()
+    department = models.CharField(max_length=100)
+    doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True)
+    appointment_datetime = models.DateTimeField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+
+    def __str__(self):
+        return f"Guest: {self.name} on {self.appointment_datetime.strftime('%Y-%m-%d %H:%M')}"

@@ -21,6 +21,11 @@ from django.contrib.auth import update_session_auth_hash
 from .forms import PatientProfileForm, PatientExtraForm
 from django.contrib.auth.forms import PasswordChangeForm
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import Patient, Appointment, Doctor
+from .forms import AppointmentSymptomForm
 
 
 #REGISTER
@@ -63,10 +68,10 @@ def user_login(request):
             login(request, user)
             try:
                 if role == "patient" and hasattr(user, 'patient'):
-                    print("<<<<<<<<< patient login >>>>>>>>>")
+                    # print("<<<<<<<<< patient login >>>>>>>>>")
                     return redirect('patient_dashboard')
                 elif role == "doctor" and hasattr(user, 'doctor'):
-                    print("<<<<<<< doctor login >>>>>>>>>>")
+                    # print("<<<<<<< doctor login >>>>>>>>>>")
                     return redirect('doctor_dashboard')
                 else:
                     messages.error(request, "Invalid role or user does not have this profile.")
@@ -76,7 +81,6 @@ def user_login(request):
                 return redirect('login')
             
     else:
-        print("<<<<<<<<< login error occurred >>>>>>>>>>")
         form = AuthenticationForm()
     return render(request, 'core/login.html', {'form': form})
 
@@ -129,8 +133,6 @@ def dashboard_redirect(request):
     
 
 
-
-
 ## ----------------## HOME PAGE
 
 def home(request):
@@ -169,43 +171,60 @@ def departments_detail(request, pk):
     department = get_object_or_404(Department, pk=pk)
     return render(request, 'core/departments_detail.html', {'department': department})
 
+SYMPTOM_DEPARTMENT_MAP = {
+    "fever": "General Medicine",
+    "cough": "General Medicine",
+    "fracture": "Orthopedics",
+    "back pain": "Orthopedics",
+    "chest pain": "Cardiology",
+    "skin rash": "Dermatology",
+}
 
 
-@login_required
 def book_appointment(request):
-    if hasattr(request.user, 'patient'):
-        patient = request.user.patient
-    else:
-        if request.method == 'POST':
-            patient_id = request.POST.get('patient_id')
-            try:
-                patient = Patient.objects.get(id=patient_id)
-            except Patient.DoesNotExist:
-                messages.error(request, "Invalid patient selected.")
-                return redirect('home')
-        else:
-            patient = None 
+    patient = getattr(request.user, 'patient', None) if request.user.is_authenticated else None
 
-    if request.method == 'POST':
-        form = AppointmentForm(request.POST)
-        if form.is_valid() and patient:
-            appointment = form.save(commit=False)
-            appointment.patient = patient
-            appointment.save()
+    if request.user.is_authenticated:
+        # Logged-in patient booking (no date selection yet)
+        form = AppointmentSymptomForm(request.POST or None, initial={"is_guest": False})
+        if request.method == "POST" and form.is_valid():
+            symptoms = form.cleaned_data["symptoms"]
+            department = detect_department(symptoms)
 
-            send_mail(
-                'Appointment Request Received',
-                f'Dear {patient.name},\n\nYour appointment request with Dr. {appointment.doctor.name} on {appointment.appointment_datetime} has been received and is pending approval.\n\nThank you!',
-                'akshospital@gmail.com',
-                [patient.email],
-                fail_silently=False,
+            doctors = Doctor.objects.filter(department__name=department)
+            doctor = doctors.first()
+
+            Appointment.objects.create(
+                patient=patient,
+                doctor=doctor,
+                description=symptoms
             )
-            return redirect('patient_dashboard' if hasattr(request.user, 'patient') else 'home')
-    else:
-        form = AppointmentForm()
+            messages.success(request, "Appointment booked successfully.")
+            return redirect("patient_dashboard")
 
-    return render(request, 'core/book_appointment.html', {'form': form,
-        'is_patient': hasattr(request.user, 'patient')})
+    else:
+        # Guest booking
+        form = GuestAppointmentForm(request.POST or None)
+        if request.method == "POST" and form.is_valid():
+            cleaned = form.cleaned_data
+            department = detect_department(cleaned["symptoms"])
+            doctors = Doctor.objects.filter(department__name=department)
+            doctor = doctors.first()
+
+            GuestAppointment.objects.create(
+                name=cleaned["name"],
+                email=cleaned["email"],
+                phone=cleaned["phone"],
+                symptoms=cleaned["symptoms"],
+                department=department,
+                doctor=doctor,
+                appointment_datetime=cleaned["appointment_datetime"]
+            )
+
+            messages.success(request, "Your appointment request has been submitted!")
+            return redirect("home")
+
+    return render(request, "core/book_appointment.html", {"form": form, "patient": patient})
 
 
 @login_required
