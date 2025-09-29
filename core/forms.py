@@ -15,15 +15,6 @@ User = get_user_model()
 # core/forms.py
 from .models import Appointment
 
-class AppointmentSymptomForm(forms.ModelForm):
-    class Meta:
-        model = Appointment
-        fields = ['patient_name', 'doctor', 'date', 'symptom']  # use your actual model fields
-
-
-
-
-
 class GuestAppointmentForm(forms.Form):
     name = forms.CharField(max_length=100, required=True)
     email = forms.EmailField(required=True)

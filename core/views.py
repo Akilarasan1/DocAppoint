@@ -1,6 +1,5 @@
 from django.shortcuts import render,redirect
 from .models import Appointment, Doctor, Patient, Department
-from .forms import AppointmentForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from .forms import PatientSignUpForm
@@ -20,13 +19,9 @@ from .forms import  PatientExtraForm
 from django.contrib.auth import update_session_auth_hash
 from .forms import PatientProfileForm, PatientExtraForm
 from django.contrib.auth.forms import PasswordChangeForm
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from .models import Patient, Appointment, Doctor
-from .forms import AppointmentSymptomForm
-
+from django.utils import timezone
+from .models import Appointment, GuestAppointment, Doctor
+from .forms import AppointmentForm, GuestAppointmentForm
 
 #REGISTER
 def register(request):
@@ -181,24 +176,35 @@ SYMPTOM_DEPARTMENT_MAP = {
 }
 
 
+def detect_department(symptoms):
+    """
+    Detect department based on symptom keywords.
+    """
+    symptoms = symptoms.lower()
+    for key, department in SYMPTOM_DEPARTMENT_MAP.items():
+        if key in symptoms:
+            return department
+    return "General Medicine"  # fallback
+
+
 def book_appointment(request):
-    patient = getattr(request.user, 'patient', None) if request.user.is_authenticated else None
-
     if request.user.is_authenticated:
-        # Logged-in patient booking (no date selection yet)
-        form = AppointmentSymptomForm(request.POST or None, initial={"is_guest": False})
+        # Logged-in patient booking
+        patient = getattr(request.user, 'patient', None)
+        form = AppointmentForm(request.POST or None, initial={"patient": patient.name if patient else ""})
+
         if request.method == "POST" and form.is_valid():
-            symptoms = form.cleaned_data["symptoms"]
+            # Assign doctor based on symptoms
+            symptoms = form.cleaned_data["description"]
             department = detect_department(symptoms)
+            doctor = Doctor.objects.filter(department__name=department).first()
 
-            doctors = Doctor.objects.filter(department__name=department)
-            doctor = doctors.first()
+            # Save appointment
+            appointment = form.save(commit=False)
+            appointment.patient = patient
+            appointment.doctor = doctor
+            appointment.save()
 
-            Appointment.objects.create(
-                patient=patient,
-                doctor=doctor,
-                description=symptoms
-            )
             messages.success(request, "Appointment booked successfully.")
             return redirect("patient_dashboard")
 
@@ -208,8 +214,7 @@ def book_appointment(request):
         if request.method == "POST" and form.is_valid():
             cleaned = form.cleaned_data
             department = detect_department(cleaned["symptoms"])
-            doctors = Doctor.objects.filter(department__name=department)
-            doctor = doctors.first()
+            doctor = Doctor.objects.filter(department__name=department).first()
 
             GuestAppointment.objects.create(
                 name=cleaned["name"],
@@ -224,7 +229,7 @@ def book_appointment(request):
             messages.success(request, "Your appointment request has been submitted!")
             return redirect("home")
 
-    return render(request, "core/book_appointment.html", {"form": form, "patient": patient})
+    return render(request, "core/book_appointment.html", {"form": form})
 
 
 @login_required
