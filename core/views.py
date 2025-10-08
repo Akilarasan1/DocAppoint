@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from .models import Appointment, Doctor, Patient, Department
+from .models import Appointment, Doctor, Patient, Department,GuestAppointment, Doctor
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from .forms import PatientSignUpForm
@@ -20,8 +20,34 @@ from django.contrib.auth import update_session_auth_hash
 from .forms import PatientProfileForm, PatientExtraForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.utils import timezone
-from .models import Appointment, GuestAppointment, Doctor
+# from .models import Appointment, GuestAppointment, Doctor
 from .forms import AppointmentForm, GuestAppointmentForm
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import user_passes_test
+from .forms import DoctorCreationForm
+
+# Only admin users can access
+def is_admin(user):
+    return hasattr(user, 'admin') or user.is_superuser
+
+@user_passes_test(is_admin)
+def add_doctor(request):
+    if request.method == "POST":
+        form = DoctorCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Doctor account created successfully!")
+            return redirect("admin_dashboard")
+        else:
+            messages.error(request, "Please fix the errors below.")
+    else:
+        form = DoctorCreationForm()
+
+    return render(request, "core/add_doctor.html", {"form": form})
+
+
+
 
 #REGISTER
 def register(request):
@@ -62,12 +88,16 @@ def user_login(request):
             user = form.get_user()
             login(request, user)
             try:
+                print('role>>>>>>>>>>>>>>>> ',role)
                 if role == "patient" and hasattr(user, 'patient'):
                     # print("<<<<<<<<< patient login >>>>>>>>>")
                     return redirect('patient_dashboard')
                 elif role == "doctor" and hasattr(user, 'doctor'):
                     # print("<<<<<<< doctor login >>>>>>>>>>")
                     return redirect('doctor_dashboard')
+                elif role == "admin" and user.is_staff:
+                    # print("admin login where are you ")
+                    return redirect('admin_dashboard')
                 else:
                     messages.error(request, "Invalid role or user does not have this profile.")
                     return redirect('login')
@@ -77,6 +107,7 @@ def user_login(request):
             
     else:
         form = AuthenticationForm()
+        messages.error(request, "Invalid credentials. Please register before logging in.")
     return render(request, 'core/login.html', {'form': form})
 
 
@@ -126,7 +157,6 @@ def dashboard_redirect(request):
     else:
         return redirect('home')
     
-
 
 ## ----------------## HOME PAGE
 
@@ -189,24 +219,25 @@ def detect_department(symptoms):
 
 def book_appointment(request):
     if request.user.is_authenticated:
-        # Logged-in patient booking
         patient = getattr(request.user, 'patient', None)
         form = AppointmentForm(request.POST or None, initial={"patient": patient.name if patient else ""})
 
         if request.method == "POST" and form.is_valid():
-            # Assign doctor based on symptoms
             symptoms = form.cleaned_data["description"]
             department = detect_department(symptoms)
             doctor = Doctor.objects.filter(department__name=department).first()
 
-            # Save appointment
             appointment = form.save(commit=False)
             appointment.patient = patient
-            appointment.doctor = doctor
-            appointment.save()
 
-            messages.success(request, "Appointment booked successfully.")
-            return redirect("patient_dashboard")
+            if doctor:
+                appointment.doctor = doctor
+                appointment.save()
+                messages.success(request, f"Appointment booked successfully with {doctor.name}.")
+                return redirect("patient_dashboard")
+            else:
+                messages.error(request, f"No doctor available in the {department} department right now.")
+                return redirect("book_appointment")
 
     else:
         # Guest booking
@@ -215,20 +246,23 @@ def book_appointment(request):
             cleaned = form.cleaned_data
             department = detect_department(cleaned["symptoms"])
             doctor = Doctor.objects.filter(department__name=department).first()
-
             GuestAppointment.objects.create(
                 name=cleaned["name"],
                 email=cleaned["email"],
                 phone=cleaned["phone"],
                 symptoms=cleaned["symptoms"],
                 department=department,
-                doctor=doctor,
-                appointment_datetime=cleaned["appointment_datetime"]
-            )
+                doctor=doctor,  # can be None if no doctor available
+                appointment_datetime=cleaned["appointment_datetime"],)
 
-            messages.success(request, "Your appointment request has been submitted!")
-            return redirect("home")
+            if doctor:
+                messages.success(request,
+                    f"Your appointment request has been submitted successfully! A doctor from {department} will contact you soon.",)
 
+            else:
+                messages.warning(request,
+                    f"Your appointment has been received, but currently no doctor is available in {department}. We’ll get back to you soon.",)
+            return redirect("guest_success")
     return render(request, "core/book_appointment.html", {"form": form})
 
 

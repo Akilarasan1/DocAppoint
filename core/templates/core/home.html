@@ -1,9 +1,18 @@
 {% extends 'base.html' %}
-
 {% load static %}
 
 {% block content %}
 <div class="container mt-4">
+
+    <!-- Alert Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} text-center">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <!-- Hero Section -->
     <div class="row align-items-center mb-5">
         <div class="col-md-6">
@@ -25,8 +34,6 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ dept.name }}</h5>
                     <p class="card-text">{{ dept.description|truncatechars:100 }}</p>
-{#                  {% url 'departments_detail' dept.pk %}#}
-
                     <a href="{% url 'departments_detail' dept.pk %}" class="btn btn-outline-primary">Learn More</a>
                 </div>
             </div>
@@ -35,20 +42,38 @@
     </div>
 
     <!-- Featured Doctors -->
-    <h2 class="mt-5 mb-4">Meet Our Doctors</h2>
-    <div class="row">
-        {% for doc in doctors %}
-        <div class="col-md-3 mb-4">
-            <div class="card h-100 text-center shadow-sm">
-                <img src="{{ doc.photo.url }}" class="card-img-top" alt="{{ doc.name }}">
-                <div class="card-body">
-                    <h5 class="card-title">{{ doc.name }}</h5>
-                    <p class="text-muted">{{ doc.specialization }}</p>
-                    <a href="{% url 'doctor_detail' doc.id %}" class="btn btn-outline-primary btn-sm">View Profile</a>
+        <h2 class="mt-5 mb-4">Meet Our Doctors</h2>
+        <div class="row">
+            {% for doc in doctors %}
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 text-center shadow-sm">
+                    {% if doc.photo %}
+                        <img src="{{ doc.photo.url }}" class="card-img-top" alt="{{ doc.name }}">
+                    {% else %}
+                        <img src="{% static 'images/default_doctor.png' %}" class="card-img-top" alt="Default Doctor">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ doc.name }}</h5>
+                        <p class="text-muted">{{ doc.specialization }}</p>
+                        <a href="{% url 'doctor_detail' doc.id %}" class="btn btn-outline-primary btn-sm">View Profile</a>
+                    </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
+
 </div>
+
+<!-- Optional Styling -->
+<style>
+    .card {
+        border: none;
+        transition: transform 0.2s ease-in-out;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
 {% endblock %}

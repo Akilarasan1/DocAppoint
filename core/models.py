@@ -4,9 +4,6 @@ from django.conf import settings
 
 # User = get_user_model()
 
-
-
-
 class Department(models.Model):
     name = models.CharField(max_length = 100)
     description = models.TextField(blank = True)

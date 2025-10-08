@@ -29,9 +29,7 @@ urlpatterns = [
     path("patient/profile/", views.patient_profile, name="patient_profile"),
     path("profile/", views.patient_profile, name="patient_profile"),
     path("change-password/", views.change_password, name="change_password"),
-
-
-
+    path("add-doctor/", views.add_doctor, name="add_doctor"),
     path("doctor/change-password/", DoctorPasswordChangeView.as_view(), name="doctor_change_password"),
     
     # path("password_reset/", auth_views.PasswordResetView.as_view(), name="password_reset"),

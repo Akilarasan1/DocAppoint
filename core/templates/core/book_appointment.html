@@ -46,37 +46,6 @@
   </style>
 </head>
 <body>
-
-  <h2>Book an Appointment</h2>
-
-  <form method="post">
-    {% csrf_token %}
-
-    {% if not request.user.is_authenticated %}
-      <!-- Guest fields -->
-      <div>
-        <label for="name">Full Name</label>
-        <input type="text" name="name" id="name" required placeholder="Enter your name">
-      </div>
-
-      <div>
-        <label for="email">Email</label>
-        <input type="email" name="email" id="email" required placeholder="Enter your email">
-      </div>
-
-      <div>
-        <label for="phone">Phone</label>
-        <input type="text" name="phone" id="phone" required placeholder="Enter your phone number">
-      </div>
-    {% else %}
-      <p>Booking as <strong>{{ request.user.patient.name }}</strong></p>
-    {% endif %}
-
-    <!-- Symptom description (common for both) -->
-    <div>
-      {{ form.symptoms.label_tag }}
-      {{ form.symptoms }}
-    </div>
       <h2>Book an Appointment</h2>
 
         <form method="post">

@@ -15,6 +15,35 @@ User = get_user_model()
 # core/forms.py
 from .models import Appointment
 
+
+from django import forms
+from django.contrib.auth.models import User
+from .models import Doctor, Department
+
+class DoctorCreationForm(forms.ModelForm):
+    username = forms.CharField(max_length=150, required=True)
+    password = forms.CharField(widget=forms.PasswordInput, required=True)
+
+    class Meta:
+        model = Doctor
+        fields = [
+            'username',  'password',  'name',
+            'email','phone','department','specialization','available_days','available_time','is_featured']
+
+    def save(self, commit=True):
+        # First create the User object
+        username = self.cleaned_data['username']
+        password = self.cleaned_data['password']
+        email = self.cleaned_data['email']
+
+        user = User.objects.create_user(username=username, password=password, email=email)
+        doctor = super().save(commit=False)
+        doctor.user = user
+        if commit:
+            doctor.save()
+        return doctor
+
+
 class GuestAppointmentForm(forms.Form):
     name = forms.CharField(max_length=100, required=True)
     email = forms.EmailField(required=True)
