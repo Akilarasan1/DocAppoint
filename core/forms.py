@@ -9,10 +9,8 @@ from .models import Patient
 from django.utils import timezone
 
 User = get_user_model()
-# core/forms.py
 from .models import Appointment
 from django.contrib.auth.models import User
-# core/forms.py
 
 
 class DepartmentForm(forms.ModelForm):
@@ -24,12 +22,9 @@ class DepartmentForm(forms.ModelForm):
 class DoctorCreationForm(forms.ModelForm):
     username = forms.CharField(max_length=150, required=True)
     password = forms.CharField(widget=forms.PasswordInput, required=True)
-
-    # Override the department field
-    department = forms.ModelChoiceField(
-        queryset=Department.objects.all(),
-        empty_label="Select Department",
-        widget=forms.Select(attrs={'class': 'form-control'})
+    available_days = forms.MultipleChoiceField(
+        choices=Doctor.DAYS_OF_WEEK,
+        widget=forms.CheckboxSelectMultiple
     )
 
     class Meta:
@@ -41,7 +36,6 @@ class DoctorCreationForm(forms.ModelForm):
         ]
 
     def save(self, commit=True):
-        # Create User object
         username = self.cleaned_data['username']
         password = self.cleaned_data['password']
         email = self.cleaned_data['email']
@@ -49,10 +43,12 @@ class DoctorCreationForm(forms.ModelForm):
         user = User.objects.create_user(username=username, password=password, email=email)
         doctor = super().save(commit=False)
         doctor.user = user
-
+        # store selected days as list
+        doctor.available_days = self.cleaned_data['available_days']
         if commit:
             doctor.save()
         return doctor
+
 
     
 class DoctorProfileForm(forms.ModelForm):

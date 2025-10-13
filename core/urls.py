@@ -32,7 +32,7 @@ urlpatterns = [
     path("change-password/", views.change_password, name="change_password"),
     path("add-doctor/", views.add_doctor, name="add_doctor"),
     path("doctor/change-password/", DoctorPasswordChangeView.as_view(), name="doctor_change_password"),
-    path('create-department/', views.create_department, name='create_department'),
+    # path('create-department/', views.create_department, name='create_department'),
 
 
     # path("password_reset/", auth_views.PasswordResetView.as_view(), name="password_reset"),
@@ -63,8 +63,7 @@ urlpatterns = [
              template_name="core/doctor_password_reset_complete.html"
          ), 
          name="doctor_password_reset_complete"),
-    path('create-department/', views.add_department, name='create_department'),
-
+        path('create-department/', views.manage_department, name='create_department'),
 ]
 
 if settings.DEBUG:

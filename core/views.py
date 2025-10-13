@@ -29,29 +29,16 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 
 @staff_member_required
-def create_department(request):
+def manage_department(request):
+    next_url = request.GET.get('next', 'admin_dashboard')
     if request.method == "POST":
         form = DepartmentForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             messages.success(request, "Department created successfully!")
-            return redirect('admin_dashboard')
+            return redirect(next_url)
     else:
         form = DepartmentForm()
-
-    return render(request, "core/create_department.html", {"form": form})
-
-
-def add_department(request):
-    if request.method == "POST":
-        form = DepartmentForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Department created successfully!")
-            return redirect('department_list')  # Or redirect wherever you want
-    else:
-        form = DepartmentForm()
-
     return render(request, 'core/create_department.html', {'form': form})
 
 
