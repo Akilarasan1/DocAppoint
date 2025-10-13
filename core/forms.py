@@ -2,36 +2,46 @@ from django import forms
 from .models import Appointment
 from django.contrib.auth.forms import UserCreationForm
 # from django.contrib.auth.models import User
-from .models import Doctor, Patient,CustomUser
+from .models import Doctor, Patient,CustomUser,Department
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from .models import Patient
-from django import forms
-from django import forms
 from django.utils import timezone
 
 User = get_user_model()
-
 # core/forms.py
 from .models import Appointment
-
-
-from django import forms
 from django.contrib.auth.models import User
-from .models import Doctor, Department
+# core/forms.py
+
+
+class DepartmentForm(forms.ModelForm):
+    class Meta:
+        model = Department
+        fields = ['name', 'description', 'image']
+
 
 class DoctorCreationForm(forms.ModelForm):
     username = forms.CharField(max_length=150, required=True)
     password = forms.CharField(widget=forms.PasswordInput, required=True)
 
+    # Override the department field
+    department = forms.ModelChoiceField(
+        queryset=Department.objects.all(),
+        empty_label="Select Department",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = Doctor
         fields = [
-            'username',  'password',  'name',
-            'email','phone','department','specialization','available_days','available_time','is_featured']
+            'username', 'password', 'name', 'email', 'phone',
+            'department', 'specialization', 'available_days',
+            'start_time', 'end_time', 'is_featured'
+        ]
 
     def save(self, commit=True):
-        # First create the User object
+        # Create User object
         username = self.cleaned_data['username']
         password = self.cleaned_data['password']
         email = self.cleaned_data['email']
@@ -39,9 +49,30 @@ class DoctorCreationForm(forms.ModelForm):
         user = User.objects.create_user(username=username, password=password, email=email)
         doctor = super().save(commit=False)
         doctor.user = user
+
         if commit:
             doctor.save()
         return doctor
+
+    
+class DoctorProfileForm(forms.ModelForm):
+    class Meta:
+        model = Doctor
+        fields = ['name', 'specialization', 'email']
+        
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.role = "doctor"
+        if commit:
+            user.save()
+        return user       
+
+
+class DoctorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'specialization', 'email', 'department')
+    search_fields = ('name', 'specialization', 'email')
+
+
 
 
 class GuestAppointmentForm(forms.Form):
@@ -110,25 +141,6 @@ class PatientSignUpForm(UserCreationForm):
             user.save()
         return user
 
-
-
-class DoctorProfileForm(forms.ModelForm):
-    class Meta:
-        model = Doctor
-        fields = ['name', 'specialization', 'email']
-        
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.role = "doctor"
-        if commit:
-            user.save()
-        return user       
-            
-            
-
-class DoctorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'specialization', 'email', 'department')
-    search_fields = ('name', 'specialization', 'email')
 
 
 class PatientProfileForm(forms.ModelForm):

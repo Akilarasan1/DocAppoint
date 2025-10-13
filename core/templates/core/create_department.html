@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container" style="max-width: 600px; margin: 50px auto; padding: 20px;">
+  <h2 style="text-align: center; color: #007bff;">Create Department</h2>
+
+  {% if messages %}
+  <ul>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <form method="POST" enctype="multipart/form-data" class="form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" style="background-color:#007bff; color:white; padding:10px 20px; border:none; border-radius:5px;">
+      Save Department
+    </button>
+  </form>
+
+  <div style="margin-top:20px;">
+    <a href="{% url 'admin_dashboard' %}" style="color:#555;">← Back to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

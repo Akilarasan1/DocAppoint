@@ -20,14 +20,42 @@ from django.contrib.auth import update_session_auth_hash
 from .forms import PatientProfileForm, PatientExtraForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.utils import timezone
-# from .models import Appointment, GuestAppointment, Doctor
 from .forms import AppointmentForm, GuestAppointmentForm
 from django.shortcuts import render, redirect
-from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from .forms import DoctorCreationForm
+from .forms import DepartmentForm
+from django.contrib.admin.views.decorators import staff_member_required
 
-# Only admin users can access
+
+@staff_member_required
+def create_department(request):
+    if request.method == "POST":
+        form = DepartmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Department created successfully!")
+            return redirect('admin_dashboard')
+    else:
+        form = DepartmentForm()
+
+    return render(request, "core/create_department.html", {"form": form})
+
+
+def add_department(request):
+    if request.method == "POST":
+        form = DepartmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Department created successfully!")
+            return redirect('department_list')  # Or redirect wherever you want
+    else:
+        form = DepartmentForm()
+
+    return render(request, 'core/create_department.html', {'form': form})
+
+
+
 def is_admin(user):
     return hasattr(user, 'admin') or user.is_superuser
 
@@ -45,8 +73,6 @@ def add_doctor(request):
         form = DoctorCreationForm()
 
     return render(request, "core/add_doctor.html", {"form": form})
-
-
 
 
 #REGISTER
@@ -324,7 +350,7 @@ def reject_appointment(request, appointment_id):
 @staff_member_required
 def admin_dashboard(request):
     total_patients = Patient.objects.count()
-    total_doctors = Patient.objects.count()
+    total_doctors = Doctor.objects.count()
     total_appointment = Appointment.objects.count()
     approved = Appointment.objects.filter(status = "Approved").count()
     rejected = Appointment.objects.filter(status = "Rejected").count()

@@ -29,4 +29,10 @@
       <span class="badge bg-warning text-dark">{{ pending }}</span>
     </li>
   </ul>
+    <a href="{% url 'add_doctor' %}" class="btn btn-primary">Add Doctor</a>
+    <a href="{% url 'create_department' %}" style="background:#007bff; color:white; padding:8px 15px; border-radius:5px; text-decoration:none;">+ Add Department</a>
+    <label>Department</label>
+    {{ form.department }}
+    <a href="{% url 'create_department' %}">+ Add new</a>
+
 {% endblock %}

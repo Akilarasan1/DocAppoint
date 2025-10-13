@@ -20,6 +20,7 @@ urlpatterns = [
     path('doctor/reject/<int:appointment_id>/', views.reject_appointment, name='reject_appointment'),
     path("admin-dashboard/", views.admin_dashboard,name = "admin_dashboard"),
     path('doctor/profile/', views.doctor_profile, name='doctor_profile'),
+    path('create-doctor-profile/', views.add_doctor, name = 'add_doctor'),
 
     path("doctors/", views.doctors, name='doctors'),
     path('departments/', views.departments_list, name='departments_list'),
@@ -31,7 +32,9 @@ urlpatterns = [
     path("change-password/", views.change_password, name="change_password"),
     path("add-doctor/", views.add_doctor, name="add_doctor"),
     path("doctor/change-password/", DoctorPasswordChangeView.as_view(), name="doctor_change_password"),
-    
+    path('create-department/', views.create_department, name='create_department'),
+
+
     # path("password_reset/", auth_views.PasswordResetView.as_view(), name="password_reset"),
     # path("password_reset/done/", auth_views.PasswordResetDoneView.as_view(), name="password_reset_done"),
     # path("reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
@@ -60,8 +63,7 @@ urlpatterns = [
              template_name="core/doctor_password_reset_complete.html"
          ), 
          name="doctor_password_reset_complete"),
-  
-
+    path('create-department/', views.add_department, name='create_department'),
 
 ]
 
