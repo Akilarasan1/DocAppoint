@@ -1,46 +1,103 @@
-{% extends 'core/../base.html' %}
+{% extends 'base.html' %}
+
+{% block title %}Doctor dashboard{% endblock %}
 
 {% block content %}
-  <h2>Welcome Dr. {{ doctor.name }}</h2>
+<div class="container">
+    <div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <span class="doctor-avatar">{{ doctor.initials }}</span>
+            <div>
+                <div class="eyebrow">Doctor dashboard</div>
+                <h1>Welcome, Dr. {{ doctor.name }}</h1>
+                <p class="text-muted mb-0">{{ doctor.specialization }}{% if doctor.department %} · {{ doctor.department.name|title }}{% endif %}</p>
+            </div>
+        </div>
+        <a href="{% url 'doctor_profile' %}" class="btn btn-soft"><i class="bi bi-person-gear me-1"></i> Edit profile</a>
+    </div>
 
-  <h3>Your Appointments</h3>
-  {% if appointments %}
-  <a href="{% url 'doctor_profile' %}" class="btn btn-outline-info">Edit Profile</a>
+    {% if pending_count %}
+        <div class="alert alert-warning d-flex align-items-center gap-2 border-0">
+            <i class="bi bi-hourglass-split"></i>
+            You have <strong>{{ pending_count }}</strong> appointment request{{ pending_count|pluralize }} waiting for your review.
+        </div>
+    {% endif %}
 
-    <table class="table table-bordered table-striped">
-      <thead class="table-primary">
-        <tr>
-          <th>Patient</th>
-          <th>Date</th>
-          <th>Time</th>
-          <th>Status</th>
-          <th>Description</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for appt in appointments %}
-        <tr>
-          <td>{{ appt.patient.name }}</td>
-          <td>{{ appt.appointment_datetime|date:"Y-m-d" }}</td>
-          <td>{{ appt.appointment_datetime|time:"h:i A" }}</td>
-          <td>{{ appt.status }}</td>
-          <td>{{ appt.description }}</td>
-          <td>
-            {% if appt.status == "Pending" %}
-              <a href="{% url 'approve_appointment' appt.id %}" class="btn btn-success btn-sm">Approve</a>
-              <a href="{% url 'reject_appointment' appt.id %}" class="btn btn-danger btn-sm">Reject</a>
-              <a href="{% url 'doctor_profile' %}" class="btn btn-outline-info">Edit Profile</a>
- 
-            {% else %}
-              <span class="text-muted">No actions</span>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>No appointments assigned.</p>
-  {% endif %}
+    <!-- Registered patients -->
+    <div class="card overflow-hidden mb-4">
+        <div class="card-body border-bottom d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">Patient appointments</h2>
+            <span class="text-muted small">{{ appointments|length }} total</span>
+        </div>
+        {% if appointments %}
+            <div class="table-responsive">
+                <table class="table table-modern">
+                    <thead><tr><th>Patient</th><th>Date &amp; time</th><th>Symptoms</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody>
+                        {% for appt in appointments %}
+                        <tr>
+                            <td class="fw-semibold">{{ appt.patient.name }}</td>
+                            <td>
+                                <div>{{ appt.appointment_datetime|date:"D, d M Y" }}</div>
+                                <div class="text-muted small">{{ appt.appointment_datetime|time:"h:i A" }}</div>
+                            </td>
+                            <td class="text-muted" style="max-width: 300px;">{{ appt.description|truncatechars:90 }}</td>
+                            <td>{% include "core/partials/status_badge.html" with status=appt.status %}</td>
+                            <td class="text-end text-nowrap">
+                                {% if appt.status == "Pending" %}
+                                    {% include "core/partials/appointment_actions.html" with kind="patient" pk=appt.pk %}
+                                {% else %}
+                                    <span class="text-muted small">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state"><i class="bi bi-inbox"></i>No patient appointments assigned yet.</div>
+        {% endif %}
+    </div>
+
+    <!-- Guest bookings -->
+    <div class="card overflow-hidden">
+        <div class="card-body border-bottom d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">Guest requests</h2>
+            <span class="text-muted small">{{ guest_appointments|length }} total</span>
+        </div>
+        {% if guest_appointments %}
+            <div class="table-responsive">
+                <table class="table table-modern">
+                    <thead><tr><th>Guest</th><th>Date &amp; time</th><th>Symptoms</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody>
+                        {% for appt in guest_appointments %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ appt.name }}</div>
+                                <div class="text-muted small">{{ appt.phone }} · {{ appt.email }}</div>
+                            </td>
+                            <td>
+                                <div>{{ appt.appointment_datetime|date:"D, d M Y" }}</div>
+                                <div class="text-muted small">{{ appt.appointment_datetime|time:"h:i A" }}</div>
+                            </td>
+                            <td class="text-muted" style="max-width: 300px;">{{ appt.symptoms|truncatechars:90 }}</td>
+                            <td>{% include "core/partials/status_badge.html" with status=appt.status %}</td>
+                            <td class="text-end text-nowrap">
+                                {% if appt.status == "Pending" %}
+                                    {% include "core/partials/appointment_actions.html" with kind="guest" pk=appt.pk %}
+                                {% else %}
+                                    <span class="text-muted small">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state"><i class="bi bi-inbox"></i>No guest requests assigned to you.</div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

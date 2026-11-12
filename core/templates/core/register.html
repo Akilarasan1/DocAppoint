@@ -1,15 +1,25 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Patient Register</title>
-</head>
-<body>
-    <h2>Register</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Register</button>
-    </form>
-    <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}Create account{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="form-card">
+        <div class="text-center mb-4">
+            <span class="icon-tile mb-3"><i class="bi bi-person-plus"></i></span>
+            <h1 class="h3 mb-1">Create your patient account</h1>
+            <p class="text-muted">Track your appointments and get email updates.</p>
+        </div>
+        <div class="card p-4">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% include "core/partials/form_fields.html" with form=form half_fields="username email password1 password2 age gender" %}
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">Create account</button>
+                </div>
+            </form>
+        </div>
+        <p class="text-center mt-3 text-muted">Already have an account? <a href="{% url 'login' %}" class="fw-semibold">Log in</a></p>
+    </div>
+</div>
+{% endblock %}

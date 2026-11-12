@@ -1,21 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Appointment Success</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-</head>
-<body class="bg-light">
+{% extends 'base.html' %}
 
-<div class="container mt-5 text-center">
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-success">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
-    <h3>Thank you for booking!</h3>
-    <p>Our team will contact you soon regarding your appointment.</p>
-    <a href="{% url 'home' %}" class="btn btn-primary mt-3">Return to Home</a>
+{% block title %}Request received{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card p-5 text-center mx-auto" style="max-width: 560px;">
+        <div class="tone-green mb-3"><span class="icon-tile" style="width:64px;height:64px;font-size:1.8rem;"><i class="bi bi-check2-circle"></i></span></div>
+        <h1 class="h3">Thank you for booking!</h1>
+        <p class="text-muted">We've received your appointment request. You'll get an email as soon as a doctor confirms it.</p>
+        <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+            <a href="{% url 'home' %}" class="btn btn-primary">Back to home</a>
+            <a href="{% url 'register' %}" class="btn btn-soft">Create an account to track bookings</a>
+        </div>
+    </div>
 </div>
-
-</body>
-</html>
+{% endblock %}

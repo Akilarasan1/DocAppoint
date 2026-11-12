@@ -1,10 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+from django.templatetags.static import static
 from datetime import time
-# User = get_user_model()
 
-from django.db import models
 
 class Department(models.Model):
     name = models.CharField(max_length=100)
@@ -14,12 +13,20 @@ class Department(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def image_url(self):
+        # The default image ships with the app's static files, not with uploaded media
+        if not self.image or self.image.name == 'default_department.png':
+            return static('images/default_department.png')
+        return self.image.url
+
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
         ('patient', 'Patient'),
         ('doctor', 'Doctor'),
     )
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='None', null=True)
+    # Empty for admin/staff accounts
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, blank=True, default='')
 
 class Doctor(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
@@ -48,15 +55,36 @@ class Doctor(models.Model):
     def __str__(self):
         return f"Dr. {self.name} ({self.department.name if self.department else 'No Department'})"
 
+    @property
+    def initials(self):
+        return "".join(part[0] for part in self.name.split()[:2]).upper() or "DR"
+
+    @property
+    def available_day_codes(self):
+        """Valid day codes from available_days; old rows may hold a number or a plain string."""
+        days = self.available_days
+        if isinstance(days, str):
+            days = [d.strip() for d in days.split(',')]
+        if not isinstance(days, (list, tuple)):
+            return []
+        valid = dict(self.DAYS_OF_WEEK)
+        return [d for d in days if d in valid]
+
+    def get_available_days_display(self):
+        labels = dict(self.DAYS_OF_WEEK)
+        return ", ".join(labels[day] for day in self.available_day_codes) or "Every day"
+
 
 
 
 
 class Patient(models.Model):
+    GENDER_CHOICES = [('Male', 'Male'), ('Female', 'Female')]
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=100, blank=True)
     age = models.PositiveBigIntegerField()
-    gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female')])
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     email = models.EmailField()
     phone = models.CharField(max_length=15)
     address = models.TextField()

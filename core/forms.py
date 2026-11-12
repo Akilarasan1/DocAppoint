@@ -1,27 +1,67 @@
+from datetime import datetime
+
 from django import forms
-from .models import Appointment
-from django.contrib.auth.forms import UserCreationForm
-# from django.contrib.auth.models import User
-from .models import Doctor, Patient,CustomUser,Department
-from django.contrib import admin
 from django.contrib.auth import get_user_model
-from .models import Patient
+from django.contrib.auth.forms import PasswordChangeForm, PasswordResetForm, SetPasswordForm, UserCreationForm
+from django.contrib.auth.password_validation import validate_password
+from django.db import transaction
 from django.utils import timezone
 
+from .models import Appointment, Department, Doctor, Patient
+
 User = get_user_model()
-from .models import Appointment
-from django.contrib.auth.models import User
 
 
-class DepartmentForm(forms.ModelForm):
+class BootstrapFormMixin:
+    """Adds Bootstrap 5 CSS classes to every widget so templates stay clean."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            widget = field.widget
+            if isinstance(widget, (forms.CheckboxInput, forms.CheckboxSelectMultiple, forms.RadioSelect)):
+                css = 'form-check-input'
+            elif isinstance(widget, forms.Select):
+                css = 'form-select'
+            else:
+                css = 'form-control'
+            widget.attrs['class'] = f"{widget.attrs.get('class', '')} {css}".strip()
+
+
+class AppointmentSlotMixin(forms.Form):
+    """Optional department + date/time inputs combined into one timezone-aware datetime in the future."""
+
+    department = forms.ModelChoiceField(
+        queryset=Department.objects.order_by('name'),
+        required=False,
+        empty_label="Not sure — match me by my symptoms",
+    )
+    appointment_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), label="Preferred date")
+    appointment_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), label="Preferred time")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        appointment_date = cleaned_data.get("appointment_date")
+        appointment_time = cleaned_data.get("appointment_time")
+
+        if appointment_date and appointment_time:
+            combined_dt = timezone.make_aware(datetime.combine(appointment_date, appointment_time))
+            if combined_dt < timezone.now():
+                raise forms.ValidationError("Appointment time cannot be in the past.")
+            cleaned_data["appointment_datetime"] = combined_dt
+        return cleaned_data
+
+
+class DepartmentForm(BootstrapFormMixin, forms.ModelForm):
     class Meta:
         model = Department
         fields = ['name', 'description', 'image']
+        widgets = {'description': forms.Textarea(attrs={'rows': 4})}
 
 
-class DoctorCreationForm(forms.ModelForm):
-    username = forms.CharField(max_length=150, required=True)
-    password = forms.CharField(widget=forms.PasswordInput, required=True)
+class DoctorCreationForm(BootstrapFormMixin, forms.ModelForm):
+    username = forms.CharField(max_length=150)
+    password = forms.CharField(widget=forms.PasswordInput)
     available_days = forms.MultipleChoiceField(
         choices=Doctor.DAYS_OF_WEEK,
         widget=forms.CheckboxSelectMultiple
@@ -34,118 +74,124 @@ class DoctorCreationForm(forms.ModelForm):
             'department', 'specialization', 'available_days',
             'start_time', 'end_time', 'is_featured'
         ]
+        widgets = {
+            'start_time': forms.TimeInput(attrs={'type': 'time'}),
+            'end_time': forms.TimeInput(attrs={'type': 'time'}),
+        }
 
-    def save(self, commit=True):
+    def clean_username(self):
         username = self.cleaned_data['username']
-        password = self.cleaned_data['password']
-        email = self.cleaned_data['email']
+        if User.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError("This username is already taken.")
+        return username
 
-        user = User.objects.create_user(username=username, password=password, email=email)
+    def clean_password(self):
+        password = self.cleaned_data['password']
+        validate_password(password)
+        return password
+
+    @transaction.atomic
+    def save(self, commit=True):
+        user = User.objects.create_user(
+            username=self.cleaned_data['username'],
+            password=self.cleaned_data['password'],
+            email=self.cleaned_data['email'],
+            role='doctor',
+        )
         doctor = super().save(commit=False)
         doctor.user = user
-        # store selected days as list
         doctor.available_days = self.cleaned_data['available_days']
         if commit:
             doctor.save()
         return doctor
 
 
-    
-class DoctorProfileForm(forms.ModelForm):
+class DoctorProfileForm(BootstrapFormMixin, forms.ModelForm):
     class Meta:
         model = Doctor
-        fields = ['name', 'specialization', 'email']
-        
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.role = "doctor"
-        if commit:
-            user.save()
-        return user       
+        fields = ['name', 'specialization', 'email', 'phone']
 
 
-class DoctorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'specialization', 'email', 'department')
-    search_fields = ('name', 'specialization', 'email')
-
-
-
-
-class GuestAppointmentForm(forms.Form):
-    name = forms.CharField(max_length=100, required=True)
-    email = forms.EmailField(required=True)
-    phone = forms.CharField(max_length=15, required=True)
+class GuestAppointmentForm(BootstrapFormMixin, AppointmentSlotMixin):
+    name = forms.CharField(max_length=100, label="Full name")
+    email = forms.EmailField()
+    phone = forms.CharField(max_length=15)
     symptoms = forms.CharField(
-        widget=forms.Textarea(attrs={'placeholder': 'Describe your symptoms...'}),
-        label="Your Symptoms"
-    )
-    appointment_date = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date'}),
-        required=True
-    )
-    appointment_time = forms.TimeField(
-        widget=forms.TimeInput(attrs={'type': 'time'}),
-        required=True
+        widget=forms.Textarea(attrs={'rows': 4, 'placeholder': 'e.g. fever and cough for 3 days'}),
+        label="Your symptoms",
+        help_text="We use this to match you with the right department.",
     )
 
-    def clean(self):
-        cleaned_data = super().clean()
-        appointment_date = cleaned_data.get("appointment_date")
-        appointment_time = cleaned_data.get("appointment_time")
-
-        if appointment_date and appointment_time:
-            combined_dt = timezone.make_aware(
-                timezone.datetime.combine(appointment_date, appointment_time)
-            )
-            if combined_dt < timezone.now():
-                raise forms.ValidationError("Appointment time cannot be in the past.")
-            cleaned_data["appointment_datetime"] = combined_dt
-        return cleaned_data
+    field_order = ['name', 'email', 'phone', 'symptoms', 'department', 'appointment_date', 'appointment_time']
 
 
-class AppointmentForm(forms.ModelForm):
-    patient = forms.CharField(label="Patient Name")
+class AppointmentForm(BootstrapFormMixin, AppointmentSlotMixin, forms.ModelForm):
+    """Booking form for a logged-in patient; the patient and doctor are set by the view."""
 
     class Meta:
         model = Appointment
-        fields = ['patient', 'doctor', 'appointment_datetime', 'description']
+        fields = ['description']
+        labels = {'description': "Your symptoms"}
+        help_texts = {'description': "We use this to match you with the right department."}
         widgets = {
-            'appointment_datetime': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'e.g. fever and cough for 3 days'}),
         }
 
-    def clean_patient(self):
-        patient_name = self.cleaned_data['patient']
-        patient, created = Patient.objects.get_or_create(name=patient_name)
-        return patient
+    field_order = ['description', 'department', 'appointment_date', 'appointment_time']
 
-    
 
-class PatientSignUpForm(UserCreationForm):
-    age = forms.IntegerField()
-    gender = forms.ChoiceField(choices=[('M', 'Male'), ('F', 'Female')])
+class PatientSignUpForm(BootstrapFormMixin, UserCreationForm):
+    email = forms.EmailField()
+    age = forms.IntegerField(min_value=0, max_value=130)
+    gender = forms.ChoiceField(choices=Patient.GENDER_CHOICES)
     phone = forms.CharField(max_length=15)
-    address = forms.CharField(widget=forms.Textarea)
+    address = forms.CharField(widget=forms.Textarea(attrs={'rows': 2}))
 
     class Meta(UserCreationForm.Meta):
-        model = CustomUser   # your custom user model
-        fields = ['username', 'password1', 'password2', 'email', 'age', 'gender', 'phone', 'address']
+        model = User
+        fields = ['username', 'email', 'password1', 'password2', 'age', 'gender', 'phone', 'address']
 
+    @transaction.atomic
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.role = 'patient'   
+        user.role = 'patient'
         if commit:
             user.save()
+            Patient.objects.create(
+                user=user,
+                name=user.username,
+                email=user.email,
+                age=self.cleaned_data['age'],
+                gender=self.cleaned_data['gender'],
+                phone=self.cleaned_data['phone'],
+                address=self.cleaned_data['address'],
+            )
         return user
 
 
-
-class PatientProfileForm(forms.ModelForm):
+# Form for the login account fields of a patient
+class PatientProfileForm(BootstrapFormMixin, forms.ModelForm):
     class Meta:
         model = User
-        fields = ['username', 'email']  # only editable fields
+        fields = ['username', 'email']
+
 
 # Form for Patient model (extra info)
-class PatientExtraForm(forms.ModelForm):
+class PatientExtraForm(BootstrapFormMixin, forms.ModelForm):
     class Meta:
         model = Patient
         fields = ['name', 'age', 'gender', 'phone', 'address']
+        widgets = {'address': forms.Textarea(attrs={'rows': 2})}
+
+
+# Django's built-in password forms with Bootstrap styling
+class StyledPasswordChangeForm(BootstrapFormMixin, PasswordChangeForm):
+    pass
+
+
+class StyledPasswordResetForm(BootstrapFormMixin, PasswordResetForm):
+    pass
+
+
+class StyledSetPasswordForm(BootstrapFormMixin, SetPasswordForm):
+    pass

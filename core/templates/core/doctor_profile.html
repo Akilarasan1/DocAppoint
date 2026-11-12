@@ -1,26 +1,17 @@
-{% extends "base.html" %}
+{% extends 'core/partials/form_page.html' %}
 
-{% block content %}
-<div class="container mt-5">
-    <h2>Doctor Profile</h2>
-
-    <!-- Profile update form -->
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-success">Update</button>
-    </form>
-
-    <hr>
-
-    <!-- Password actions -->
-    <h4>Account Settings</h4>
-    <p>
-        <a href="{% url 'doctor_change_password' %}" class="btn btn-warning">Change Password</a>
-        <a href="{% url 'doctor_password_reset' %}" class="btn btn-danger">Forgot Password?</a>
-    </p>
-
-    <hr>
-    <a href="{% url 'doctor_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+{% block title %}My profile{% endblock %}
+{% block page_icon %}bi-person-gear{% endblock %}
+{% block page_eyebrow %}Doctor{% endblock %}
+{% block page_title %}Edit your profile{% endblock %}
+{% block form_body %}{% include "core/partials/form_fields.html" with half_fields="name specialization email phone" %}{% endblock %}
+{% block back_url %}{% url 'doctor_dashboard' %}{% endblock %}
+{% block back_label %}Back to dashboard{% endblock %}
+{% block submit_label %}Save changes{% endblock %}
+{% block after_form %}
+<hr class="my-4">
+<h2 class="h6">Account security</h2>
+<div class="d-flex flex-wrap gap-2">
+    <a href="{% url 'doctor_change_password' %}" class="btn btn-soft btn-sm"><i class="bi bi-key me-1"></i> Change password</a>
 </div>
 {% endblock %}

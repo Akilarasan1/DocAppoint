@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from .models import Department, Doctor, Patient, Appointment
+from .models import Department, Doctor, Patient, Appointment, GuestAppointment
 
 User = get_user_model()
 
@@ -36,9 +36,33 @@ class CustomUserAdmin(UserAdmin):
     )
 
 
+class DoctorAdmin(admin.ModelAdmin):
+    list_display = ("name", "specialization", "department", "email", "is_featured")
+    list_filter = ("department", "is_featured")
+    search_fields = ("name", "specialization", "email")
+
+
+class PatientAdmin(admin.ModelAdmin):
+    list_display = ("name", "email", "phone", "age", "gender")
+    search_fields = ("name", "email", "phone")
+
+
+class AppointmentAdmin(admin.ModelAdmin):
+    list_display = ("patient", "doctor", "appointment_datetime", "status")
+    list_filter = ("status", "doctor__department")
+    search_fields = ("patient__name", "doctor__name")
+
+
+class GuestAppointmentAdmin(admin.ModelAdmin):
+    list_display = ("name", "email", "department", "doctor", "appointment_datetime", "status")
+    list_filter = ("status", "department")
+    search_fields = ("name", "email", "phone")
+
+
 # Register
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Department)
-admin.site.register(Patient)
-admin.site.register(Appointment)
-admin.site.register(Doctor)
+admin.site.register(Patient, PatientAdmin)
+admin.site.register(Appointment, AppointmentAdmin)
+admin.site.register(GuestAppointment, GuestAppointmentAdmin)
+admin.site.register(Doctor, DoctorAdmin)

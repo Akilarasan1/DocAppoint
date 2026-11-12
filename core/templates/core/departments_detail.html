@@ -1,9 +1,42 @@
 {% extends "base.html" %}
+
+{% block title %}{{ department.name|title }}{% endblock %}
+
 {% block content %}
-<h2>{{ department.name }}</h2>
-{% if department.image %}
-    <img src="{{ department.image.url }}" alt="{{ department.name }}" style="width:300px;">
-{% endif %}
-<p>{{ department.description }}</p>
-<a href="{% url 'departments_list' %}">Back to Departments</a>
+<div class="container">
+    <nav aria-label="breadcrumb" class="pt-4">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'departments_list' %}">Departments</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ department.name|title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4 align-items-center py-4">
+        <div class="col-lg-7">
+            <h1 class="mb-3">{{ department.name|title }}</h1>
+            <p class="lead text-muted">{{ department.description|linebreaksbr }}</p>
+            <a href="{% url 'book_appointment' %}" class="btn btn-primary"><i class="bi bi-calendar-plus me-1"></i> Book an appointment</a>
+        </div>
+        <div class="col-lg-5">
+            <img src="{{ department.image_url }}" alt="{{ department.name }}" class="img-fluid w-100 rounded-4 shadow-sm" style="max-height: 300px; object-fit: cover;">
+        </div>
+    </div>
+
+    <h2 class="h4 mb-3">Doctors in this department</h2>
+    <div class="row g-3">
+        {% for doc in doctors %}
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'doctor_detail' doc.pk %}" class="card card-hover h-100 p-3 d-flex flex-row align-items-center gap-3 text-decoration-none text-reset">
+                <span class="doctor-avatar" style="width:56px;height:56px;font-size:1.1rem;">{{ doc.initials }}</span>
+                <div>
+                    <div class="fw-semibold">Dr. {{ doc.name }}</div>
+                    <div class="text-muted small">{{ doc.specialization }}</div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12"><div class="card empty-state"><i class="bi bi-person-badge"></i>No doctors are listed in this department yet.</div></div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}

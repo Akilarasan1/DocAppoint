@@ -1,79 +1,106 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}Home{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
+<div class="container py-4">
 
-    <!-- Alert Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} text-center">
-                {{ message }}
+    <!-- Hero -->
+    <section class="hero mb-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="badge rounded-pill text-bg-light border mb-3"><i class="bi bi-shield-check text-success me-1"></i> Trusted care, booked in minutes</span>
+                <h1 class="mb-3">Your health, <span class="text-primary">our priority.</span></h1>
+                <p class="lead text-muted mb-4">Describe your symptoms and we’ll match you with the right specialist. No account needed to get started.</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'book_appointment' %}" class="btn btn-primary btn-lg"><i class="bi bi-calendar-plus me-2"></i>Book an appointment</a>
+                    <a href="{% url 'doctors' %}" class="btn btn-soft btn-lg">Find a doctor</a>
+                </div>
+                <div class="d-flex gap-4 mt-4">
+                    <div><div class="hero-stat">{{ department_count }}</div><div class="text-muted small">Departments</div></div>
+                    <div><div class="hero-stat">{{ doctor_count }}</div><div class="text-muted small">Doctors</div></div>
+                    <div><div class="hero-stat">24/7</div><div class="text-muted small">Emergency care</div></div>
+                </div>
             </div>
-        {% endfor %}
-    {% endif %}
-
-    <!-- Hero Section -->
-    <div class="row align-items-center mb-5">
-        <div class="col-md-6">
-            <h1 class="display-4 fw-bold">Your Health, Our Priority</h1>
-            <p class="lead">Expert care, compassionate staff, and world-class facilities at your service.</p>
-            <a href="{% url 'book_appointment' %}" class="btn btn-primary btn-lg">Book an Appointment</a>
+            <div class="col-lg-6">
+                <img src="{% static 'images/hospital_banner.png' %}" class="img-fluid w-100" alt="AKS Hospital building">
+            </div>
         </div>
-        <div class="col-md-6">
-            <img src="{% static 'images/hospital_banner.png' %}" class="img-fluid rounded shadow" alt="Hospital">
-        </div>
-    </div>
+    </section>
 
-    <!-- Departments Section -->
-    <h2 class="mb-4">Our Departments</h2>
-    <div class="row">
-        {% for dept in departments %}
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">{{ dept.name }}</h5>
-                    <p class="card-text">{{ dept.description|truncatechars:100 }}</p>
-                    <a href="{% url 'departments_detail' dept.pk %}" class="btn btn-outline-primary">Learn More</a>
+    <!-- How it works -->
+    <section class="mb-5">
+        <h2 class="h3 mb-4 text-center">How booking works</h2>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="card h-100 p-4">
+                    <span class="icon-tile mb-3"><i class="bi bi-chat-square-text"></i></span>
+                    <h3 class="h6">1. Tell us your symptoms</h3>
+                    <p class="text-muted mb-0">Pick a department yourself, or let us match one from what you describe.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 p-4">
+                    <span class="icon-tile mb-3"><i class="bi bi-calendar-check"></i></span>
+                    <h3 class="h6">2. Choose a time</h3>
+                    <p class="text-muted mb-0">We assign an available doctor who works on that day and hour.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 p-4">
+                    <span class="icon-tile mb-3"><i class="bi bi-envelope-check"></i></span>
+                    <h3 class="h6">3. Get confirmation</h3>
+                    <p class="text-muted mb-0">The doctor approves your request and you receive an email.</p>
                 </div>
             </div>
         </div>
-        {% endfor %}
-    </div>
+    </section>
 
-    <!-- Featured Doctors -->
-        <h2 class="mt-5 mb-4">Meet Our Doctors</h2>
-        <div class="row">
-            {% for doc in doctors %}
-            <div class="col-md-3 mb-4">
-                <div class="card h-100 text-center shadow-sm">
-                    {% if doc.photo %}
-                        <img src="{{ doc.photo.url }}" class="card-img-top" alt="{{ doc.name }}">
-                    {% else %}
-                        <img src="{% static 'images/default_doctor.png' %}" class="card-img-top" alt="Default Doctor">
-                    {% endif %}
+    <!-- Departments -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-end mb-3">
+            <h2 class="h3 mb-0">Our departments</h2>
+            <a href="{% url 'departments_list' %}" class="fw-semibold text-decoration-none">View all <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-3">
+            {% for dept in departments %}
+            <div class="col-sm-6 col-lg-4">
+                <a href="{% url 'departments_detail' dept.pk %}" class="card card-hover h-100 text-decoration-none text-reset">
+                    <img src="{{ dept.image_url }}" class="dept-img w-100" alt="{{ dept.name }}">
                     <div class="card-body">
-                        <h5 class="card-title">{{ doc.name }}</h5>
-                        <p class="text-muted">{{ doc.specialization }}</p>
-                        <a href="{% url 'doctor_detail' doc.id %}" class="btn btn-outline-primary btn-sm">View Profile</a>
+                        <h3 class="h5 card-title">{{ dept.name|title }}</h3>
+                        <p class="card-text text-muted mb-0">{{ dept.description|truncatechars:100 }}</p>
                     </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-12"><div class="card empty-state"><i class="bi bi-building"></i>Departments will appear here once they are added.</div></div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Featured doctors -->
+    {% if doctors %}
+    <section>
+        <div class="d-flex justify-content-between align-items-end mb-3">
+            <h2 class="h3 mb-0">Meet our doctors</h2>
+            <a href="{% url 'doctors' %}" class="fw-semibold text-decoration-none">All doctors <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-3">
+            {% for doc in doctors %}
+            <div class="col-sm-6 col-lg-3">
+                <div class="card card-hover h-100 text-center p-4">
+                    <div class="mx-auto mb-3"><span class="doctor-avatar">{{ doc.initials }}</span></div>
+                    <h3 class="h6 mb-1">Dr. {{ doc.name }}</h3>
+                    <p class="text-muted small mb-3">{{ doc.specialization }}{% if doc.department %} · {{ doc.department.name|title }}{% endif %}</p>
+                    <a href="{% url 'doctor_detail' doc.id %}" class="btn btn-outline-primary btn-sm mt-auto">View profile</a>
                 </div>
             </div>
             {% endfor %}
         </div>
+    </section>
+    {% endif %}
 
 </div>
-
-<!-- Optional Styling -->
-<style>
-    .card {
-        border: none;
-        transition: transform 0.2s ease-in-out;
-    }
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    }
-</style>
-
 {% endblock %}

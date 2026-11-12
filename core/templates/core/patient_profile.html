@@ -1,29 +1,20 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="container mt-5">
-    <div class="card shadow p-4">
-        <!-- <h2 class="mb-3">Patient Profile</h2> -->
+{% extends 'core/partials/form_page.html' %}
 
-        <!-- Profile Update -->
-        <h3>Edit Profile</h3>
-        <form method="post">
-            {% csrf_token %}
-            {{ profile_form.as_p }}
-            {{ extra_form.as_p }}
-            <button type="submit" name="update_profile" class="btn btn-success">Update Profile</button>
-        </form>
-
-        <hr>
-
-        <!-- Password Change -->
-       
-        <a href="{% url 'change_password' %}" class="btn btn-warning mt-3">Change Password</a>
-
-        <hr>
-
-        <!-- Navigation -->
-        <a href="{% url 'patient_dashboard' %}" class="btn btn-primary mt-3">Go to Dashboard</a>
-        <a href="{% url 'logout' %}" class="btn btn-danger mt-3">Logout</a>
-    </div>
-</div>
+{% block title %}My profile{% endblock %}
+{% block page_icon %}bi-person-gear{% endblock %}
+{% block page_eyebrow %}Patient{% endblock %}
+{% block page_title %}Edit your profile{% endblock %}
+{% block form_body %}
+    <h2 class="h6 text-muted text-uppercase small mb-3">Account</h2>
+    {% include "core/partials/form_fields.html" with form=profile_form half_fields="username email" %}
+    <h2 class="h6 text-muted text-uppercase small mt-4 mb-3">Personal details</h2>
+    {% include "core/partials/form_fields.html" with form=extra_form half_fields="name age gender phone" %}
+{% endblock %}
+{% block back_url %}{% url 'patient_dashboard' %}{% endblock %}
+{% block back_label %}Back to dashboard{% endblock %}
+{% block submit_label %}Save changes{% endblock %}
+{% block after_form %}
+<hr class="my-4">
+<h2 class="h6">Account security</h2>
+<a href="{% url 'change_password' %}" class="btn btn-soft btn-sm"><i class="bi bi-key me-1"></i> Change password</a>
 {% endblock %}

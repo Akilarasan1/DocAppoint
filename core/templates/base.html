@@ -4,213 +4,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}AKS Hospital{% endblock %}</title>
+    <title>{% block title %}AKS Hospital{% endblock %} · AKS Hospital</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <style>
-        :root {
-            --primary: #2c6fbb;
-            --secondary: #4ba3c7;
-            --accent: #175676;
-            --light: #f8f9fa;
-            --dark: #343a40;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        main {
-            flex: 1;
-        }
-
-        .navbar {
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            padding: 0.5rem 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: white !important;
-            display: flex;
-            align-items: center;
-        }
-
-        .navbar-brand i {
-            margin-right: 8px;
-            font-size: 1.8rem;
-        }
-
-        .nav-link {
-            color: rgba(255, 255, 255, 0.85) !important;
-            font-weight: 500;
-            padding: 0.5rem 1rem !important;
-            margin: 0 0.1rem;
-            border-radius: 6px;
-            transition: all 0.3s;
-        }
-
-        .nav-link:hover {
-            color: white !important;
-            background-color: rgba(255, 255, 255, 0.15);
-            transform: translateY(-1px);
-        }
-
-        .navbar-toggler {
-            border: none;
-            color: white !important;
-        }
-
-        .navbar-toggler:focus {
-            box-shadow: none;
-        }
-
-        .dropdown-menu {
-            border: none;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-
-        .dropdown-item {
-            padding: 0.5rem 1rem;
-            transition: all 0.2s;
-        }
-
-        .dropdown-item:hover {
-            background-color: #f0f7ff;
-        }
-
-        .dropdown-item i {
-            margin-right: 8px;
-            color: var(--primary);
-            width: 18px;
-        }
-
-        .appointment-btn {
-            background-color: white;
-            color: var(--primary) !important;
-            border-radius: 6px;
-            padding: 0.5rem 1.2rem !important;
-            font-weight: 600;
-            margin-left: 0.5rem;
-            transition: all 0.3s;
-        }
-
-        .appointment-btn:hover {
-            background-color: #f8f9fa;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        footer {
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            color: white;
-            padding: 1.5rem 0;
-            margin-top: auto;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 992px) {
-            .navbar-collapse {
-                background: white;
-                padding: 1rem;
-                border-radius: 8px;
-                margin-top: 0.5rem;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            }
-
-            .navbar-nav .nav-link {
-                color: var(--dark) !important;
-                padding: 0.5rem 0 !important;
-            }
-
-            .appointment-btn {
-                color: var(--primary) !important;
-                background-color: transparent;
-                margin-left: 0;
-                padding: 0.5rem 0 !important;
-            }
-
-            .dropdown-menu {
-                border: 1px solid rgba(0, 0, 0, 0.1);
-            }
-        }
-    </style>
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
+{% with url_name=request.resolver_match.url_name %}
 
-    <!-- Top Nav -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <nav class="navbar navbar-expand-lg site-nav sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-hospital"></i>AKS Hospital
+                <span class="brand-mark"><i class="bi bi-heart-pulse-fill"></i></span>AKS Hospital
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                    aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="mainNav">
-                <ul class="navbar-nav ms-auto align-items-lg-center">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'departments_list' %}"><i class="fas fa-procedures"></i> Departments</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'doctors' %}"><i class="fas fa-user-md"></i> Doctors</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-info-circle"></i> About Us</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-phone"></i> Contact</a></li>
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+                    <li class="nav-item"><a class="nav-link {% if url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link {% if url_name == 'departments_list' or url_name == 'departments_detail' %}active{% endif %}" href="{% url 'departments_list' %}">Departments</a></li>
+                    <li class="nav-item"><a class="nav-link {% if url_name == 'doctors' or url_name == 'doctor_detail' %}active{% endif %}" href="{% url 'doctors' %}">Doctors</a></li>
 
                     {% if user.is_authenticated %}
-                        {% if user.role == "patient" %}
-                            <li class="nav-item"><a class="nav-link appointment-btn" href="{% url 'book_appointment' %}"><i class="fas fa-calendar-check"></i> Book Appointment</a></li>
-                            <li class="nav-item"><a class="nav-link" href="{% url 'patient_dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                        {% elif user.role == "doctor" %}
-                            <li class="nav-item"><a class="nav-link" href="{% url 'doctor_dashboard' %}"><i class="fas fa-tachometer-alt"></i> Doctor Dashboard</a></li>
-                        {% endif %}
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle me-1"></i> {{ user.username }}
+                        <li class="nav-item"><a class="nav-link {% if 'dashboard' in url_name %}active{% endif %}" href="{% url 'dashboard' %}">Dashboard</a></li>
+                        <li class="nav-item dropdown ms-lg-2">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="avatar-chip">{{ user.username|slice:":2"|upper }}</span>
+                                <span>{{ user.username }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 {% if user.role == "doctor" %}
-                                    <li><a class="dropdown-item" href="{% url 'doctor_profile' %}"><i class="fas fa-user-edit"></i> Edit Profile</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'doctor_profile' %}"><i class="bi bi-person-gear"></i> Edit profile</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'doctor_change_password' %}"><i class="bi bi-key"></i> Change password</a></li>
                                 {% elif user.role == "patient" %}
-                                    <li><a class="dropdown-item" href="{% url 'patient_profile' %}"><i class="fas fa-user-edit"></i> Edit Profile</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'patient_profile' %}"><i class="bi bi-person-gear"></i> Edit profile</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'change_password' %}"><i class="bi bi-key"></i> Change password</a></li>
+                                {% endif %}
+                                {% if user.is_staff %}
+                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear"></i> Django admin</a></li>
                                 {% endif %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                                <li>
+                                    <form method="post" action="{% url 'logout' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right text-danger"></i> Log out</button>
+                                    </form>
+                                </li>
                             </ul>
                         </li>
+                        {% if user.role == "patient" %}
+                            <li class="nav-item ms-lg-2"><a class="btn btn-primary" href="{% url 'book_appointment' %}"><i class="bi bi-calendar-plus me-1"></i> Book appointment</a></li>
+                        {% endif %}
                     {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                        <li class="nav-item"><a class="nav-link {% if url_name == 'login' %}active{% endif %}" href="{% url 'login' %}">Log in</a></li>
+                        <li class="nav-item ms-lg-2"><a class="btn btn-primary" href="{% url 'book_appointment' %}"><i class="bi bi-calendar-plus me-1"></i> Book appointment</a></li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- Page Content -->
-    <main class="py-4">
+    {% if messages %}
+        <div class="flash-stack" role="status" aria-live="polite">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show d-flex gap-2 align-items-start" role="alert">
+                    <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-octagon-fill{% elif message.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} mt-1"></i>
+                    <div>{{ message }}</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <main>
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="text-center py-4 mt-auto">
+    <footer class="site-footer">
         <div class="container">
-            <p class="mb-0">© 2025 AKS Hospital. All Rights Reserved.</p>
-            <div class="mt-2">
-                <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
-                <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
-                <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <a class="d-flex align-items-center gap-2 text-white fw-bold fs-5 mb-2" href="{% url 'home' %}">
+                        <span class="brand-mark"><i class="bi bi-heart-pulse-fill"></i></span>AKS Hospital
+                    </a>
+                    <p class="mb-0">Expert care, compassionate staff and simple online booking.</p>
+                </div>
+                <div class="col-6 col-md-3">
+                    <h6>Explore</h6>
+                    <ul class="list-unstyled mb-0 d-grid gap-1">
+                        <li><a href="{% url 'departments_list' %}">Departments</a></li>
+                        <li><a href="{% url 'doctors' %}">Doctors</a></li>
+                        <li><a href="{% url 'book_appointment' %}">Book an appointment</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-md-4">
+                    <h6>Emergency</h6>
+                    <p class="mb-1"><i class="bi bi-telephone me-2"></i>Call 108 for emergencies</p>
+                    <p class="mb-0"><i class="bi bi-clock me-2"></i>Outpatient: Mon–Sat, 9am–6pm</p>
+                </div>
+            </div>
+            <div class="bottom d-flex flex-wrap justify-content-between gap-2">
+                <span>© {% now "Y" %} AKS Hospital. All rights reserved.</span>
+                <span>Made with Django</span>
             </div>
         </div>
     </footer>
 
+{% endwith %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-hide success/info messages after a few seconds
+        document.querySelectorAll('.flash-stack .alert-success, .flash-stack .alert-info').forEach(function (el) {
+            setTimeout(function () { bootstrap.Alert.getOrCreateInstance(el).close(); }, 5000);
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

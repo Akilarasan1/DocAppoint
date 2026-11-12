@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local settings & secrets
+.env
+
+# Database & uploads (local data, not source code)
+db.sqlite3
+media/
+staticfiles/
+
+# Editors / OS
+.vscode/
+.idea/workspace.xml
+.DS_Store
+Thumbs.db

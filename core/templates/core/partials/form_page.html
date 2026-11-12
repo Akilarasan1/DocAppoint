@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% comment %}
+  Shared layout for simple single-form pages. Child templates set:
+  page_title, page_eyebrow, page_icon, page_intro, submit_label, back_url / back_label (blocks below).
+{% endcomment %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="form-card">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <span class="icon-tile"><i class="bi {% block page_icon %}bi-pencil-square{% endblock %}"></i></span>
+            <div>
+                <div class="eyebrow text-primary fw-semibold small text-uppercase">{% block page_eyebrow %}{% endblock %}</div>
+                <h1 class="h3 mb-0">{% block page_title %}{% endblock %}</h1>
+            </div>
+        </div>
+        {% block page_intro %}{% endblock %}
+        <div class="card p-4">
+            <form method="post" {% block form_attrs %}{% endblock %} novalidate>
+                {% csrf_token %}
+                {% block form_body %}{% include "core/partials/form_fields.html" %}{% endblock %}
+                <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mt-4">
+                    <a href="{% block back_url %}{% url 'dashboard' %}{% endblock %}" class="btn btn-link text-decoration-none px-0"><i class="bi bi-arrow-left me-1"></i>{% block back_label %}Back{% endblock %}</a>
+                    <button type="submit" class="btn btn-primary" {% block submit_attrs %}{% endblock %}>{% block submit_label %}Save{% endblock %}</button>
+                </div>
+            </form>
+            {% block after_form %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

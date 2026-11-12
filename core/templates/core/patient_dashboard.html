@@ -1,35 +1,75 @@
-{% extends 'core/../base.html' %}
+{% extends 'base.html' %}
+
+{% block title %}My appointments{% endblock %}
 
 {% block content %}
-  <h2>Welcome, {{ patient.name }}</h2>
+<div class="container">
+    <div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-3">
+        <div>
+            <div class="eyebrow">Patient dashboard</div>
+            <h1>Hello, {{ patient.name|default:user.username }}</h1>
+            <p class="text-muted mb-0">Here's an overview of your appointments.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'patient_profile' %}" class="btn btn-soft"><i class="bi bi-person-gear me-1"></i> Profile</a>
+            <a href="{% url 'book_appointment' %}" class="btn btn-primary"><i class="bi bi-calendar-plus me-1"></i> New appointment</a>
+        </div>
+    </div>
 
-  <h3>Your Appointments</h3>
-  {% if appointments %}
-    <table class="table table-bordered table-striped">
-      <thead class="table-primary">
-        <tr>
-          <th>Doctor</th>
-          <th>Date</th>
-          <th>Time</th>
-          <th>Status</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for appt in appointments %}
-        <tr>
-          <td>{{ appt.doctor.name }}</td>
-          <td>{{ appt.appointment_datetime|date:"Y-m-d" }}</td>
-          <td>{{ appt.appointment_datetime|time:"H:i" }}</td>
-          <td>{{ appt.status }}</td>
-          <td>{{ appt.description }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>No appointments found.</p>
-  {% endif %}
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card stat-card d-flex flex-row align-items-center gap-3">
+                <span class="icon-tile"><i class="bi bi-calendar3"></i></span>
+                <div><div class="label">Total</div><div class="value">{{ appointments|length }}</div></div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card stat-card tone-green d-flex flex-row align-items-center gap-3">
+                <span class="icon-tile"><i class="bi bi-calendar-check"></i></span>
+                <div><div class="label">Upcoming</div><div class="value">{{ upcoming_count }}</div></div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card stat-card tone-amber d-flex flex-row align-items-center gap-3">
+                <span class="icon-tile"><i class="bi bi-hourglass-split"></i></span>
+                <div><div class="label">Awaiting approval</div><div class="value">{{ pending_count }}</div></div>
+            </div>
+        </div>
+    </div>
 
-  <a href="{% url 'book_appointment' %}" class="btn btn-primary">Book New Appointment</a>
+    <div class="card overflow-hidden">
+        <div class="card-body border-bottom"><h2 class="h5 mb-0">Your appointments</h2></div>
+        {% if appointments %}
+            <div class="table-responsive">
+                <table class="table table-modern">
+                    <thead>
+                        <tr><th>Doctor</th><th>Date &amp; time</th><th>Symptoms</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for appt in appointments %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">Dr. {{ appt.doctor.name }}</div>
+                                <div class="text-muted small">{{ appt.doctor.department.name|default:appt.doctor.specialization|title }}</div>
+                            </td>
+                            <td>
+                                <div>{{ appt.appointment_datetime|date:"D, d M Y" }}</div>
+                                <div class="text-muted small">{{ appt.appointment_datetime|time:"h:i A" }}</div>
+                            </td>
+                            <td class="text-muted" style="max-width: 320px;">{{ appt.description|truncatechars:80 }}</td>
+                            <td>{% include "core/partials/status_badge.html" with status=appt.status %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-calendar-x"></i>
+                <p class="mb-3">You have no appointments yet.</p>
+                <a href="{% url 'book_appointment' %}" class="btn btn-primary">Book your first appointment</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

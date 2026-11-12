@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Dr. {{ doctor.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="pt-4">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'doctors' %}">Doctors</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Dr. {{ doctor.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="card p-4 p-md-5 mt-4">
+        <div class="row g-4 align-items-center">
+            <div class="col-md-auto text-center">
+                <span class="doctor-avatar lg">{{ doctor.initials }}</span>
+            </div>
+            <div class="col-md">
+                <h1 class="h2 mb-1">Dr. {{ doctor.name }}</h1>
+                <p class="text-muted mb-3">{{ doctor.specialization }}</p>
+                {% if doctor.department %}
+                    <a href="{% url 'departments_detail' doctor.department.pk %}" class="badge rounded-pill text-bg-light border text-decoration-none">{{ doctor.department.name|title }}</a>
+                {% endif %}
+            </div>
+            <div class="col-md-auto">
+                <a href="{% url 'book_appointment' %}" class="btn btn-primary btn-lg"><i class="bi bi-calendar-plus me-1"></i> Book appointment</a>
+            </div>
+        </div>
+        <hr class="my-4">
+        <div class="row g-4">
+            <div class="col-sm-6">
+                <div class="d-flex gap-3">
+                    <span class="icon-tile"><i class="bi bi-calendar-week"></i></span>
+                    <div><div class="text-muted small">Available days</div><div class="fw-semibold">{{ doctor.get_available_days_display }}</div></div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="d-flex gap-3">
+                    <span class="icon-tile"><i class="bi bi-clock"></i></span>
+                    <div><div class="text-muted small">Consultation hours</div><div class="fw-semibold">{{ doctor.start_time|time:"h:i A" }}{% if doctor.end_time %} – {{ doctor.end_time|time:"h:i A" }}{% endif %}</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

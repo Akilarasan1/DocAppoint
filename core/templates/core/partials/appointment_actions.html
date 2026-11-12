@@ -1,0 +1,10 @@
+{% comment %}Approve / reject buttons. POST + CSRF token so a link or prefetch can't change an appointment.{% endcomment %}
+<form method="post" action="{% url 'update_appointment_status' kind pk 'approve' %}" class="d-inline">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check-lg"></i> Approve</button>
+</form>
+<form method="post" action="{% url 'update_appointment_status' kind pk 'reject' %}" class="d-inline"
+      onsubmit="return confirm('Reject this appointment? The patient will be notified by email.');">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-x-lg"></i> Reject</button>
+</form>
